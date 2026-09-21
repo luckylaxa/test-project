@@ -38,7 +38,7 @@ export function ProductPanel({
   return (
     <div className="flex h-full flex-col">
       {/* Category tabs */}
-      <div className="-mx-1 flex gap-1 overflow-x-auto border-b border-line px-1 pb-3">
+      <div className="flex shrink-0 flex-wrap gap-x-1 gap-y-1 border-b border-line pb-3">
         {categories.map((category) => (
           <button
             key={category.value}

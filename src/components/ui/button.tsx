@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { Link as LinkContent } from "@/lib/section-content";
 
-type Variant = "solid" | "line" | "quiet";
+type Variant = "solid" | "line" | "quiet" | "invert";
 
 const base =
   "inline-flex items-center justify-center gap-2 px-7 py-3 text-[0.6875rem] uppercase " +
@@ -11,6 +11,8 @@ const variants: Record<Variant, string> = {
   solid: "bg-ink text-canvas hover:bg-accent hover:text-ink",
   line: "border border-ink/25 text-ink hover:border-ink hover:bg-ink hover:text-canvas",
   quiet: "border border-canvas/40 text-canvas hover:bg-canvas hover:text-ink",
+  // Filled, for use over dark imagery — the inverse of `solid`.
+  invert: "bg-canvas text-ink hover:bg-accent hover:text-ink",
 };
 
 /** Renders nothing unless the editor supplied both a label and a destination. */

@@ -126,7 +126,7 @@ export function SourceSwitcher({
   const idle = "border-ink/20 text-ink-muted hover:border-ink hover:text-ink";
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">
       <button
         type="button"
         onClick={onStartCamera}
@@ -158,14 +158,14 @@ export function SourceSwitcher({
               type="button"
               onClick={() => onPickModel(model)}
               aria-label={model.name}
-              className="relative h-9 w-9 overflow-hidden rounded-full ring-1 ring-ink/15 transition-all duration-300 hover:ring-accent"
+              className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-ink/15 transition-all duration-300 hover:ring-accent"
             >
               {model.photo_url ? (
                 <Image
                   src={model.photo_url}
                   alt={model.photo_alt ?? ""}
                   fill
-                  sizes="36px"
+                  sizes="32px"
                   className="object-cover"
                 />
               ) : null}

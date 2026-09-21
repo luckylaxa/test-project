@@ -195,23 +195,27 @@ export function Studio({
 
   const panel = (
     <>
-      <ProductPanel
-        categories={categories}
-        activeCategory={activeCategory}
-        onCategory={setActiveCategory}
-        products={visibleProducts}
-        looks={looks}
-        applied={applied}
-        onToggleShade={applyShade}
-        onApplyLook={applyLook}
-        labels={{
-          looks: labels.looks,
-          viewProduct: labels.viewProduct,
-          tryLook: labels.tryLook,
-          empty: labels.empty,
-        }}
-      />
-      <div className="mt-6 border-t border-line pt-5">
+      <div className="flex min-h-0 flex-1 flex-col">
+        <ProductPanel
+          categories={categories}
+          activeCategory={activeCategory}
+          onCategory={setActiveCategory}
+          products={visibleProducts}
+          looks={looks}
+          applied={applied}
+          onToggleShade={applyShade}
+          onApplyLook={applyLook}
+          labels={{
+            looks: labels.looks,
+            viewProduct: labels.viewProduct,
+            tryLook: labels.tryLook,
+            empty: labels.empty,
+          }}
+        />
+      </div>
+      {/* Bounded and scrollable: with five products applied the sliders used to
+          run past the panel and collide with the disclaimer beneath it. */}
+      <div className="mt-5 max-h-[38%] shrink-0 overflow-y-auto border-t border-line pt-4">
         <AppliedChips
           applied={applied}
           onRemove={(id) => setApplied((c) => c.filter((i) => i.shade.id !== id))}
@@ -230,17 +234,19 @@ export function Studio({
     // page's top padding so the controls never fall below the fold.
     <div className="lg:grid lg:h-[calc(100dvh-6rem)] lg:grid-cols-[1fr_24rem]">
       {/* Stage */}
-      <div className="relative flex min-h-[58svh] flex-col bg-canvas-soft lg:min-h-0">
+      <div className="relative flex min-h-[58svh] flex-col bg-canvas-soft pb-14 lg:min-h-0 lg:pb-0">
         <div className="relative min-h-0 flex-1">
           {hasSource ? (
-            <CanvasStage
-              source={source}
-              layers={layers}
-              comparing={comparing}
-              onFaceState={setFaceState}
-              handleRef={stageRef}
-              className="absolute inset-0"
-            />
+            <div className="absolute inset-0">
+              <CanvasStage
+                source={source}
+                layers={layers}
+                comparing={comparing}
+                onFaceState={setFaceState}
+                handleRef={stageRef}
+                className="h-full w-full"
+              />
+            </div>
           ) : (
             <PermissionScreen
               title={labels.permissionTitle}
@@ -268,7 +274,7 @@ export function Studio({
         </div>
 
         {hasSource ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-canvas px-[var(--gutter)] py-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-canvas px-[var(--gutter)] py-3 lg:flex-nowrap lg:gap-6">
             <SourceSwitcher
               mode={mode}
               models={models}

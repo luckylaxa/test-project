@@ -37,12 +37,9 @@ export function HeroSection({ content, first }: { content: Json; first: boolean 
 
   return (
     <section className="relative isolate min-h-[88svh] w-full overflow-hidden md:min-h-screen">
-      <MediaFrame
-        media={image}
-        className="absolute inset-0 h-full w-full"
-        sizes="100vw"
-        priority={first}
-      />
+      <div className="absolute inset-0">
+        <MediaFrame media={image} className="h-full w-full" sizes="100vw" priority={first} />
+      </div>
       {/* Scrim: keeps text legible over any photograph without darkening the image. */}
       <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-ink/55 via-ink/15 to-ink/25" />
 
@@ -55,11 +52,7 @@ export function HeroSection({ content, first }: { content: Json; first: boolean 
           {subtext ? <p className="measure mt-7 text-canvas/85 md:text-lg">{subtext}</p> : null}
           {primary || secondary ? (
             <div className="mt-10 flex flex-wrap gap-4">
-              <ButtonLink
-                content={primary}
-                variant="solid"
-                className="bg-canvas text-ink hover:bg-accent hover:text-ink"
-              />
+              <ButtonLink content={primary} variant="invert" />
               <ButtonLink content={secondary} variant="quiet" />
             </div>
           ) : null}
