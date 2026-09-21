@@ -26,6 +26,25 @@ const FALLBACKS: Record<string, string> = {
   no_results: "No products match these filters.",
   empty_journal: "The first article is on its way.",
   empty_looks: "Curated looks are on their way.",
+
+  // Try-on studio
+  try_on_start_camera: "Use my camera",
+  try_on_upload: "Upload a photo",
+  try_on_models: "Or try a model",
+  try_on_camera_denied:
+    "We could not reach your camera. You can still upload a photo or choose a model below.",
+  try_on_products: "Products & shades",
+  try_on_close: "Close",
+  try_on_compare: "Hold to compare",
+  try_on_snapshot: "Save image",
+  try_on_loading: "Preparing the studio",
+  try_on_searching: "Looking for your face",
+  try_on_error: "Something went wrong. Try another photo or reload the page.",
+  try_on_none_applied: "Choose a shade to begin.",
+  try_on_clear: "Clear all",
+  try_on_intensity: "intensity",
+  try_on_looks_tab: "Looks",
+  try_on_empty_category: "No products in this category yet.",
 };
 
 export function makeLabels(settings: SiteSettings | null) {

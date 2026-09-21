@@ -1,30 +1,77 @@
 import type { Metadata } from "next";
-import { getSiteSettings } from "@/lib/content";
+import { Suspense } from "react";
+import { Studio, type StudioLabels } from "@/components/try-on/studio";
+import {
+  getLooksWithItems,
+  getProducts,
+  getSiteSettings,
+  getTryOnModels,
+} from "@/lib/content";
+import { makeLabels } from "@/lib/labels";
 import { buildMetadata } from "@/lib/metadata";
+import { Constants } from "@/lib/types/database";
+import type { Category } from "@/lib/try-on/makeup-renderer";
 
 export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({ path: "/try-on" });
 }
 
-/**
- * Placeholder until Phase 4 builds the studio.
- * The copy shown here already comes from site_settings, so nothing has to be
- * rewritten when the real experience lands.
- */
 export default async function TryOnPage() {
-  const settings = await getSiteSettings();
+  const [products, looks, models, settings] = await Promise.all([
+    getProducts(),
+    getLooksWithItems(),
+    getTryOnModels(),
+    getSiteSettings(),
+  ]);
+
+  const labels = makeLabels(settings);
+
+  // Only offer categories that actually have a product with a visible shade.
+  const stocked = new Set(
+    products
+      .filter((product) => (product.shades ?? []).some((shade) => shade.is_visible))
+      .map((product) => product.category),
+  );
+  const categories = Constants.public.Enums.product_category
+    .filter((value) => stocked.has(value))
+    .map((value) => ({ value: value as Category, label: labels.category(value) }));
+
+  const studioLabels: StudioLabels = {
+    permissionTitle: settings?.camera_permission_title ?? null,
+    permissionBody: settings?.camera_permission_body ?? null,
+    disclaimer: settings?.try_on_disclaimer ?? null,
+    startCamera: labels.t("try_on_start_camera"),
+    upload: labels.t("try_on_upload"),
+    models: labels.t("try_on_models"),
+    cameraDenied: labels.t("try_on_camera_denied"),
+    looks: labels.t("try_on_looks_tab"),
+    viewProduct: labels.t("view_product"),
+    tryLook: labels.t("try_on_look"),
+    empty: labels.t("try_on_empty_category"),
+    none: labels.t("try_on_none_applied"),
+    clear: labels.t("try_on_clear"),
+    intensity: labels.t("try_on_intensity"),
+    compare: labels.t("try_on_compare"),
+    snapshot: labels.t("try_on_snapshot"),
+    searching: labels.t("try_on_searching"),
+    loading: labels.t("try_on_loading"),
+    error: labels.t("try_on_error"),
+    products: labels.t("try_on_products"),
+    close: labels.t("try_on_close"),
+  };
 
   return (
-    <section className="shell flex min-h-[70svh] flex-col justify-center py-32">
-      <p className="eyebrow">Virtual Try-On</p>
-      <h1 className="mt-6 text-5xl md:text-7xl">The studio opens shortly.</h1>
-      {settings?.camera_permission_body ? (
-        <p className="measure mt-7 text-ink-soft">{settings.camera_permission_body}</p>
-      ) : null}
-      {settings?.try_on_disclaimer ? (
-        <p className="mt-10 text-xs text-ink-muted">{settings.try_on_disclaimer}</p>
-      ) : null}
-      <hr className="rule mt-14" />
-    </section>
+    <div className="pt-20 lg:pt-24">
+      {/* useSearchParams needs a boundary so the shell around it still prerenders. */}
+      <Suspense fallback={<div className="min-h-[70svh]" />}>
+        <Studio
+          products={products}
+          looks={looks}
+          models={models}
+          categories={categories}
+          labels={studioLabels}
+        />
+      </Suspense>
+    </div>
   );
 }

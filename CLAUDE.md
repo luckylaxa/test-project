@@ -152,3 +152,32 @@ Uploading a real image in the admin panel replaces the URL with a storage URL �
 no code change is needed. `try_on_models.photo_url` is deliberately null: the face
 detector needs a real portrait, so sample-model mode stays off until real photos
 are uploaded.
+
+---
+
+## Virtual try-on (Phase 4)
+
+`src/lib/try-on/` holds the engine, `src/components/try-on/` the UI.
+
+- **Self-hosted model.** `public/mediapipe/face_landmarker.task` is committed and the
+  WASM runtime is copied from node_modules by `scripts/setup-mediapipe.mjs` on
+  predev/prebuild. Opening the studio makes **no third-party request** — verified in a
+  headless browser. Do not switch this back to a CDN.
+- **Lazy.** `@mediapipe/tasks-vision` is imported inside `loadFaceLandmarker()`, so the
+  bundle and the 3.6MB model load only when a source is chosen, never on other pages.
+- **Blend modes, not paint.** Colour is composited with `color` (hue and saturation from
+  the shade, luminosity from the skin) plus `multiply` for depth. A `source-over` fill
+  would bury pores and lip texture and read instantly as a sticker. The multiply weight
+  is curved by shade lightness, or deep shades render as pastel versions of themselves.
+- **Every mask is blurred and scaled to face width**, so the result looks the same near
+  or far. Landmark outlines are Catmull-Rom splines — straight segments look faceted.
+- **Eyeliner is a tapered band**, thin at the inner corner, thicker outward, tapering to
+  nothing at both ends. A uniform stroke looks like a marker line.
+- **One Euro filter** smooths landmarks: heavy smoothing while still, almost none while
+  moving, so colour stays locked without lag.
+- **Privacy is structural.** Frames live in a `<video>` that is never displayed, are drawn
+  to a canvas, and are never uploaded. `releaseSource()` stops every track before any
+  source swap and on unmount; the loop idles while `document.hidden`.
+
+Tuning values live in `makeup-renderer.ts` and were set by rendering real seeded shades
+against the sample portraits and looking at the output. Change them the same way.
