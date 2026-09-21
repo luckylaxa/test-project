@@ -9,6 +9,8 @@ const nextConfig: NextConfig = {
   // pages prerender and "Save & Publish" can invalidate them by tag within seconds.
   cacheComponents: true,
   images: {
+    // Serve modern formats once real photography replaces the placeholder SVGs.
+    formats: ["image/avif", "image/webp"],
     // All site imagery is uploaded to the "site-media" storage bucket.
     remotePatterns: supabaseHost
       ? [{ protocol: "https", hostname: supabaseHost, pathname: "/storage/v1/object/public/**" }]

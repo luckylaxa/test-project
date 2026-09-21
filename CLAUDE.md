@@ -210,3 +210,29 @@ layout.
   uploading `hero.jpg` cannot overwrite each other.
 - The admin's own labels and help text are the one place literal strings are
   allowed — they are panel chrome, not site content.
+
+---
+
+## Live updates and polish (Phase 6)
+
+- **On-demand revalidation** is wired through `withAdmin()` and the per-table save
+  actions, which call `updateTag` for the tags a change touches. Content edits
+  never need a redeploy.
+- **Error boundaries**: `(site)/error.tsx`, `admin/(protected)/error.tsx` and a
+  root `global-error.tsx`. Their wording is the one public copy that cannot come
+  from the database — they render when reading the database is what failed.
+- **`not-found.tsx` copy IS editable** (`ui_labels.not_found_*`), wrapped in a
+  try/catch so a failed settings read still renders something.
+- **Page transitions**: a 0.55s opacity cross-fade keyed on the pathname,
+  disabled under `prefers-reduced-motion` by the rule in globals.css.
+- **Heading levels are explicit.** `ProductCard`, `CollectionCard` and `Accordion`
+  take a `headingLevel`: 3 under a section's h2, 2 when listed directly under a
+  page's h1. Getting this wrong skips a level and breaks screen-reader
+  navigation — it did, on the collection and product pages.
+- `/try-on` has a `pages` row, so its title and SEO are editable and it carries a
+  screen-reader-only h1. The studio has no room for a visible one.
+
+Measured: ~225kB JS per page, and `/try-on` is no heavier than any other page —
+the MediaPipe model and WASM load only once a source is chosen.
+Audited across six pages: one h1 each, no skipped levels, no missing alt, no
+unlabelled controls, visible focus on every tab stop.

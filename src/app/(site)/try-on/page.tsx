@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Studio, type StudioLabels } from "@/components/try-on/studio";
 import {
   getLooksWithItems,
+  getPage,
   getProducts,
   getSiteSettings,
   getTryOnModels,
@@ -13,15 +14,22 @@ import { Constants } from "@/lib/types/database";
 import type { Category } from "@/lib/try-on/makeup-renderer";
 
 export async function generateMetadata(): Promise<Metadata> {
-  return buildMetadata({ path: "/try-on" });
+  const data = await getPage("try-on");
+  return buildMetadata({
+    title: data?.page.seo_title ?? data?.page.title,
+    description: data?.page.seo_description,
+    image: data?.page.seo_og_image_url,
+    path: "/try-on",
+  });
 }
 
 export default async function TryOnPage() {
-  const [products, looks, models, settings] = await Promise.all([
+  const [products, looks, models, settings, pageData] = await Promise.all([
     getProducts(),
     getLooksWithItems(),
     getTryOnModels(),
     getSiteSettings(),
+    getPage("try-on"),
   ]);
 
   const labels = makeLabels(settings);
@@ -62,6 +70,11 @@ export default async function TryOnPage() {
 
   return (
     <div className="pt-20 lg:pt-24">
+      {/* The studio is a full-bleed application surface with no room for a
+          visible page title, but it still needs one heading for screen readers
+          and search engines. Editable like every other page title. */}
+      <h1 className="sr-only">{pageData?.page.title ?? ""}</h1>
+
       {/* useSearchParams needs a boundary so the shell around it still prerenders. */}
       <Suspense fallback={<div className="min-h-[70svh]" />}>
         <Studio

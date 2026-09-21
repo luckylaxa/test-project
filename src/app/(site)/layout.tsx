@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { PageTransition } from "@/components/layout/page-transition";
 import { getCopyrightYear, getSiteSettings } from "@/lib/content";
 import { footerColumns, links, socialLinks } from "@/lib/section-content";
 
@@ -26,7 +27,9 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         socialLinks={social}
       />
 
-      <main id="main">{children}</main>
+      <main id="main">
+        <PageTransition>{children}</PageTransition>
+      </main>
 
       <Footer
         brandName={brandName}

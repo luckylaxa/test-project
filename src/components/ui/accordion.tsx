@@ -3,7 +3,15 @@
 import { useId, useState } from "react";
 
 /** Hairline accordion used for product details. Skips empty entries. */
-export function Accordion({ items }: { items: { title: string; body: string }[] }) {
+export function Accordion({
+  items,
+  headingLevel = 3,
+}: {
+  items: { title: string; body: string }[];
+  /** 2 when the accordion follows a page h1 directly. */
+  headingLevel?: 2 | 3;
+}) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   const [open, setOpen] = useState<number | null>(0);
   const id = useId();
 
@@ -15,7 +23,7 @@ export function Accordion({ items }: { items: { title: string; body: string }[] 
         const isOpen = open === index;
         return (
           <div key={item.title} className="border-b border-line">
-            <h3>
+            <Heading>
               <button
                 type="button"
                 aria-expanded={isOpen}
@@ -33,7 +41,7 @@ export function Accordion({ items }: { items: { title: string; body: string }[] 
                   />
                 </span>
               </button>
-            </h3>
+            </Heading>
             <div
               id={`${id}-${index}`}
               hidden={!isOpen}

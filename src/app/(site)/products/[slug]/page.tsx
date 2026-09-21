@@ -126,7 +126,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         {accordionItems.length > 0 ? (
           <div className="mt-20 grid md:grid-cols-12">
             <div className="md:col-span-7">
-              <Accordion items={accordionItems} />
+              <Accordion items={accordionItems} headingLevel={2} />
             </div>
           </div>
         ) : null}
@@ -143,6 +143,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
                 <ProductCard
                   key={related.id}
                   product={{ ...related, shades: [] }}
+                  headingLevel={3}
                   delay={i * 80}
                 />
               ))}

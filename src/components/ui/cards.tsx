@@ -10,11 +10,15 @@ export function ProductCard({
   product,
   delay = 0,
   sizes = "(min-width:1280px) 22vw, (min-width:768px) 30vw, 45vw",
+  headingLevel = 3,
 }: {
   product: ProductWithShades;
   delay?: number;
   sizes?: string;
+  /** 2 when the cards sit directly under a page h1, 3 under a section h2. */
+  headingLevel?: 2 | 3;
 }) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   const images = gallery(product.gallery);
   const primary = images[0];
   const secondary = images[1];
@@ -47,7 +51,9 @@ export function ProductCard({
         </div>
 
         <div className="mt-5">
-          <h3 className="font-[family-name:var(--font-display)] text-2xl leading-tight">{product.name}</h3>
+          <Heading className="font-[family-name:var(--font-display)] text-2xl leading-tight">
+            {product.name}
+          </Heading>
           {product.short_description ? (
             <p className="mt-2 line-clamp-2 text-sm text-ink-soft">{product.short_description}</p>
           ) : null}
@@ -82,11 +88,14 @@ export function CollectionCard({
   collection,
   delay = 0,
   sizes = "(min-width:768px) 32vw, 90vw",
+  headingLevel = 3,
 }: {
   collection: CollectionRow;
   delay?: number;
   sizes?: string;
+  headingLevel?: 2 | 3;
 }) {
+  const Heading = headingLevel === 2 ? "h2" : "h3";
   return (
     <Reveal as="article" delay={delay} className="group">
       <Link href={`/collections/${collection.slug}`} className="block">
@@ -101,7 +110,9 @@ export function CollectionCard({
             />
           ) : null}
         </div>
-        <h3 className="mt-6 font-[family-name:var(--font-display)] text-3xl">{collection.name}</h3>
+        <Heading className="mt-6 font-[family-name:var(--font-display)] text-3xl">
+          {collection.name}
+        </Heading>
         {collection.description ? (
           <p className="measure mt-3 line-clamp-3 text-sm text-ink-soft">{collection.description}</p>
         ) : null}

@@ -85,7 +85,7 @@ export function ProductFilters({
       {filtered.length > 0 ? (
         <div className="mt-14 grid grid-cols-2 gap-x-6 gap-y-12 lg:grid-cols-4 lg:gap-x-10">
           {filtered.map((product, i) => (
-            <ProductCard key={product.id} product={product} delay={i * 70} />
+            <ProductCard key={product.id} product={product} delay={i * 70} headingLevel={2} />
           ))}
         </div>
       ) : (

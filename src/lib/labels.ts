@@ -45,6 +45,13 @@ const FALLBACKS: Record<string, string> = {
   try_on_intensity: "intensity",
   try_on_looks_tab: "Looks",
   try_on_empty_category: "No products in this category yet.",
+
+  // Page not found
+  not_found_eyebrow: "404",
+  not_found_title: "This page has moved on.",
+  not_found_body:
+    "The page you were looking for is no longer here. The collections are, though.",
+  not_found_button: "Return home",
 };
 
 export function makeLabels(settings: SiteSettings | null) {

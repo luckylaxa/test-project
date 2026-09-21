@@ -202,6 +202,22 @@
 }
 
 @layer utilities {
+  /* Soft cross-fade between pages. Opacity only: moving the whole page makes a
+     site feel busy, and any transform here would fight the sections' own
+     reveal animation. */
+  .page-enter {
+    animation: page-enter 0.55s var(--ease-editorial) both;
+  }
+
+  @keyframes page-enter {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
   /* Slow reveal used by sections as they enter the viewport */
   .reveal {
     opacity: 0;

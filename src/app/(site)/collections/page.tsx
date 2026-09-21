@@ -31,7 +31,12 @@ export default async function CollectionsPage() {
         {collections.length > 0 ? (
           <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-3 lg:gap-12">
             {collections.map((collection, i) => (
-              <CollectionCard key={collection.id} collection={collection} delay={i * 90} />
+              <CollectionCard
+                key={collection.id}
+                collection={collection}
+                delay={i * 90}
+                headingLevel={2}
+              />
             ))}
           </div>
         ) : (
