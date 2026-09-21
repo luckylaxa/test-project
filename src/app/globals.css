@@ -136,6 +136,69 @@
   .measure {
     max-width: var(--measure);
   }
+
+  /* Rich text from the journal editor and rich_text sections. Styles live here
+     rather than in the saved HTML, so editors cannot break the page design. */
+  .prose-editorial {
+    font-size: 1.0625rem;
+    line-height: 1.85;
+    color: var(--ink-soft);
+  }
+
+  .prose-editorial > * + * {
+    margin-top: 1.5em;
+  }
+
+  .prose-editorial h2 {
+    margin-top: 2.6em;
+    font-size: clamp(1.75rem, 3vw, 2.375rem);
+    color: var(--ink);
+  }
+
+  .prose-editorial h3 {
+    margin-top: 2.2em;
+    font-size: clamp(1.375rem, 2.2vw, 1.75rem);
+    color: var(--ink);
+  }
+
+  .prose-editorial a {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-underline-offset: 0.25em;
+    transition: color 0.3s var(--ease-editorial);
+  }
+
+  .prose-editorial a:hover {
+    color: var(--accent);
+  }
+
+  .prose-editorial blockquote {
+    border-left: 1px solid var(--accent);
+    padding-left: 1.5rem;
+    font-family: var(--font-display), Georgia, serif;
+    font-size: 1.5rem;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+
+  .prose-editorial ul,
+  .prose-editorial ol {
+    padding-left: 1.25rem;
+  }
+
+  .prose-editorial ul { list-style: disc; }
+  .prose-editorial ol { list-style: decimal; }
+  .prose-editorial li + li { margin-top: 0.5em; }
+
+  .prose-editorial img {
+    width: 100%;
+    height: auto;
+  }
+
+  .prose-editorial strong { font-weight: 500; color: var(--ink); }
+  .prose-editorial em { font-style: italic; }
+  .prose-editorial hr { border: 0; border-top: 1px solid var(--line); margin: 3em 0; }
 }
 
 @layer utilities {

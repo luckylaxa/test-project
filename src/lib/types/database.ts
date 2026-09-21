@@ -528,6 +528,9 @@ export type Database = {
           accent_color: string
           brand_name: string
           camera_permission_body: string | null
+          category_labels: Json
+          finish_labels: Json
+          ui_labels: Json
           camera_permission_title: string | null
           contact_address: string | null
           contact_email: string | null
@@ -551,6 +554,9 @@ export type Database = {
           accent_color?: string
           brand_name?: string
           camera_permission_body?: string | null
+          category_labels?: Json
+          finish_labels?: Json
+          ui_labels?: Json
           camera_permission_title?: string | null
           contact_address?: string | null
           contact_email?: string | null
@@ -574,6 +580,9 @@ export type Database = {
           accent_color?: string
           brand_name?: string
           camera_permission_body?: string | null
+          category_labels?: Json
+          finish_labels?: Json
+          ui_labels?: Json
           camera_permission_title?: string | null
           contact_address?: string | null
           contact_email?: string | null
