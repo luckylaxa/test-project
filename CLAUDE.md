@@ -181,3 +181,32 @@ are uploaded.
 
 Tuning values live in `makeup-renderer.ts` and were set by rendering real seeded shades
 against the sample portraits and looking at the output. Change them the same way.
+
+---
+
+## Admin panel (Phase 5)
+
+`/admin` is the content manager. `src/app/admin/(protected)/` holds the gated
+screens; `/admin/login` sits outside that group so it is not gated by its own
+layout.
+
+- **Authorization is checked in every page**, not only the layout. Layouts and
+  pages render in parallel, so a page's queries run before a layout's redirect
+  lands — RLS blocks anything private, but the page should not run at all.
+  Every admin page starts with `await requireAdmin()`.
+- **Admin routes set `export const instant = false`.** They read the auth cookie,
+  so they render per request. Their build-time shells are empty (verified).
+- **Every write goes through `withAdmin()`**, which re-checks the admin and then
+  calls `updateTag` for the affected cache tags. `updateTag` (not
+  `revalidateTag`) is deliberate: it expires immediately, so an editor who saves
+  and clicks "View live site" sees their own change rather than the last version.
+- **List screens replace the whole set** (`saveRows`, `saveShades`, `savePage`,
+  `saveLooks`) rather than tracking individual adds and removes. Sort order is
+  rewritten from list order, so what the editor sees is what the site shows.
+- **Alt text is required** on uploads. **Shade and look previews** render on a real
+  try-on model photo using the same `MakeupRenderer` the public studio uses, so a
+  colour can be judged before publishing. Face detection is cached per photo.
+- Uploads go to the `site-media` bucket under a random filename, so two editors
+  uploading `hero.jpg` cannot overwrite each other.
+- The admin's own labels and help text are the one place literal strings are
+  allowed — they are panel chrome, not site content.
