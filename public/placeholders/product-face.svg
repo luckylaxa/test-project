@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1250" width="1000" height="1250" role="img">
+  <defs>
+    <radialGradient id="g1-99zuy3" cx="32%" cy="28%" r="72%">
+      <stop offset="0%" stop-color="#D9C7BA" stop-opacity=".85"/>
+      <stop offset="100%" stop-color="#D9C7BA" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g2-99zuy3" cx="76%" cy="78%" r="66%">
+      <stop offset="0%" stop-color="#C2A36B" stop-opacity=".7"/>
+      <stop offset="100%" stop-color="#C2A36B" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="g3-99zuy3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F4F0E9" stop-opacity=".0"/>
+      <stop offset="100%" stop-color="#F4F0E9" stop-opacity=".9"/>
+    </linearGradient>
+    <filter id="grain-99zuy3"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"/>
+      <feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+  <rect width="1000" height="1250" fill="#FBF9F5"/>
+  <rect width="1000" height="1250" fill="url(#g1-99zuy3)"/>
+  <rect width="1000" height="1250" fill="url(#g2-99zuy3)"/>
+  <rect width="1000" height="1250" fill="url(#g3-99zuy3)"/>
+  <rect width="1000" height="1250" filter="url(#grain-99zuy3)" opacity=".05"/>
+  <rect x="45" y="56.25" width="910" height="1137.5"
+        fill="none" stroke="#0B0B0B" stroke-opacity=".10" stroke-width="1"/>
+  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+        font-family="Cormorant Garamond, Georgia, serif" font-size="55"
+        fill="#0B0B0B" fill-opacity=".34" letter-spacing="3.3">Face</text>
+</svg>

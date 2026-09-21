@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" width="1200" height="1500" role="img">
+  <defs>
+    <radialGradient id="g1-lzb5qh" cx="32%" cy="28%" r="72%">
+      <stop offset="0%" stop-color="#8B7B6E" stop-opacity=".85"/>
+      <stop offset="100%" stop-color="#8B7B6E" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g2-lzb5qh" cx="76%" cy="78%" r="66%">
+      <stop offset="0%" stop-color="#0B0B0B" stop-opacity=".7"/>
+      <stop offset="100%" stop-color="#0B0B0B" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="g3-lzb5qh" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F4F0E9" stop-opacity=".0"/>
+      <stop offset="100%" stop-color="#F4F0E9" stop-opacity=".9"/>
+    </linearGradient>
+    <filter id="grain-lzb5qh"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"/>
+      <feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+  <rect width="1200" height="1500" fill="#FBF9F5"/>
+  <rect width="1200" height="1500" fill="url(#g1-lzb5qh)"/>
+  <rect width="1200" height="1500" fill="url(#g2-lzb5qh)"/>
+  <rect width="1200" height="1500" fill="url(#g3-lzb5qh)"/>
+  <rect width="1200" height="1500" filter="url(#grain-lzb5qh)" opacity=".05"/>
+  <rect x="54" y="67.5" width="1092" height="1365"
+        fill="none" stroke="#0B0B0B" stroke-opacity=".10" stroke-width="1"/>
+  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+        font-family="Cormorant Garamond, Georgia, serif" font-size="66"
+        fill="#0B0B0B" fill-opacity=".34" letter-spacing="3.96">Maison Noir</text>
+</svg>

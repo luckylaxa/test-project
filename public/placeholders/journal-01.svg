@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000" role="img">
+  <defs>
+    <radialGradient id="g1-h1tzpe" cx="32%" cy="28%" r="72%">
+      <stop offset="0%" stop-color="#C08A8A" stop-opacity=".85"/>
+      <stop offset="100%" stop-color="#C08A8A" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="g2-h1tzpe" cx="76%" cy="78%" r="66%">
+      <stop offset="0%" stop-color="#C2A36B" stop-opacity=".7"/>
+      <stop offset="100%" stop-color="#C2A36B" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="g3-h1tzpe" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F4F0E9" stop-opacity=".0"/>
+      <stop offset="100%" stop-color="#F4F0E9" stop-opacity=".9"/>
+    </linearGradient>
+    <filter id="grain-h1tzpe"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3"/>
+      <feColorMatrix type="saturate" values="0"/></filter>
+  </defs>
+  <rect width="1600" height="1000" fill="#FBF9F5"/>
+  <rect width="1600" height="1000" fill="url(#g1-h1tzpe)"/>
+  <rect width="1600" height="1000" fill="url(#g2-h1tzpe)"/>
+  <rect width="1600" height="1000" fill="url(#g3-h1tzpe)"/>
+  <rect width="1600" height="1000" filter="url(#grain-h1tzpe)" opacity=".05"/>
+  <rect x="72" y="45" width="1456" height="910"
+        fill="none" stroke="#0B0B0B" stroke-opacity=".10" stroke-width="1"/>
+  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
+        font-family="Cormorant Garamond, Georgia, serif" font-size="55"
+        fill="#0B0B0B" fill-opacity=".34" letter-spacing="3.3">Journal I</text>
+</svg>
