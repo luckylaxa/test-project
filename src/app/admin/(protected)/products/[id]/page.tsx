@@ -20,7 +20,7 @@ export default async function EditProductPage({
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: product }, { data: collections }, { data: allProducts }, { data: model }] =
+  const [{ data: product }, { data: collections }, { data: allProducts }, { data: model }, { data: settings }] =
     await Promise.all([
       supabase.from("products").select("*").eq("id", id).maybeSingle(),
       supabase.from("collections").select("*").order("sort_order"),
@@ -32,6 +32,7 @@ export default async function EditProductPage({
         .order("sort_order")
         .limit(1)
         .maybeSingle(),
+      supabase.from("site_settings").select("currency, checkout_enabled").eq("id", 1).maybeSingle(),
     ]);
 
   if (!product) notFound();
@@ -66,6 +67,8 @@ export default async function EditProductPage({
         allProducts={allProducts ?? []}
         related={(related ?? []).map((r) => r.related_product_id)}
         modelPhoto={model?.photo_url ?? null}
+        currency={settings?.currency ?? "EUR"}
+        checkoutEnabled={settings?.checkout_enabled ?? false}
       />
     </>
   );

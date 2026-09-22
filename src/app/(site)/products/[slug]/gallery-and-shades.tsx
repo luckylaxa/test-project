@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { Swatch } from "@/components/ui/swatch";
+import { AddToCart } from "@/components/cart/add-to-cart";
 import type { ShadeRow } from "@/lib/content";
 import type { GalleryImage } from "@/lib/section-content";
 
@@ -16,13 +17,18 @@ export function GalleryAndShades({
   images,
   shades,
   productSlug,
+  productId,
+  purchasable,
   labels,
   finishLabels,
 }: {
   images: GalleryImage[];
   shades: ShadeRow[];
   productSlug: string;
-  labels: { chooseShade: string; tryOnShade: string };
+  productId: string;
+  /** False when the shop is closed or the product has no price yet. */
+  purchasable: boolean;
+  labels: { chooseShade: string; tryOnShade: string; addToCart: string };
   finishLabels: Record<string, string>;
 }) {
   const [activeImage, setActiveImage] = useState(0);
@@ -104,14 +110,29 @@ export function GalleryAndShades({
               <p className="mt-5 font-[family-name:var(--font-display)] text-2xl">{shade.name}</p>
             ) : null}
 
-            <Link
-              href={`/try-on?product=${encodeURIComponent(productSlug)}${
-                shade ? `&shade=${encodeURIComponent(shade.id)}` : ""
-              }`}
-              className="mt-7 inline-flex w-full items-center justify-center bg-ink px-8 py-4 text-[0.6875rem] tracking-[0.2em] text-canvas uppercase transition-colors duration-500 ease-[var(--ease-editorial)] hover:bg-accent hover:text-ink sm:w-auto"
-            >
-              {labels.tryOnShade}
-            </Link>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              {purchasable ? (
+                <AddToCart
+                  productId={productId}
+                  shadeId={shade?.id ?? null}
+                  label={labels.addToCart}
+                  className="w-full sm:w-auto"
+                />
+              ) : null}
+
+              <Link
+                href={`/try-on?product=${encodeURIComponent(productSlug)}${
+                  shade ? `&shade=${encodeURIComponent(shade.id)}` : ""
+                }`}
+                className={`inline-flex w-full items-center justify-center px-8 py-4 text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-500 ease-[var(--ease-editorial)] sm:w-auto ${
+                  purchasable
+                    ? "border border-ink/25 hover:border-ink hover:bg-ink hover:text-canvas"
+                    : "bg-ink text-canvas hover:bg-accent hover:text-ink"
+                }`}
+              >
+                {labels.tryOnShade}
+              </Link>
+            </div>
           </div>
         ) : null}
       </div>

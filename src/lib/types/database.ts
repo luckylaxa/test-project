@@ -360,8 +360,10 @@ export type Database = {
           id: string
           ingredients: string | null
           is_bestseller: boolean
+          is_purchasable: boolean
           is_visible: boolean
           name: string
+          price_amount: number | null
           price_display: string | null
           seo_description: string | null
           seo_og_image_url: string | null
@@ -383,8 +385,10 @@ export type Database = {
           id?: string
           ingredients?: string | null
           is_bestseller?: boolean
+          is_purchasable?: boolean
           is_visible?: boolean
           name?: string
+          price_amount?: number | null
           price_display?: string | null
           seo_description?: string | null
           seo_og_image_url?: string | null
@@ -406,8 +410,10 @@ export type Database = {
           id?: string
           ingredients?: string | null
           is_bestseller?: boolean
+          is_purchasable?: boolean
           is_visible?: boolean
           name?: string
+          price_amount?: number | null
           price_display?: string | null
           seo_description?: string | null
           seo_og_image_url?: string | null
@@ -529,6 +535,8 @@ export type Database = {
           brand_name: string
           camera_permission_body: string | null
           category_labels: Json
+          checkout_enabled: boolean
+          currency: string
           finish_labels: Json
           ui_labels: Json
           camera_permission_title: string | null
@@ -555,6 +563,8 @@ export type Database = {
           brand_name?: string
           camera_permission_body?: string | null
           category_labels?: Json
+          checkout_enabled?: boolean
+          currency?: string
           finish_labels?: Json
           ui_labels?: Json
           camera_permission_title?: string | null
@@ -581,6 +591,8 @@ export type Database = {
           brand_name?: string
           camera_permission_body?: string | null
           category_labels?: Json
+          checkout_enabled?: boolean
+          currency?: string
           finish_labels?: Json
           ui_labels?: Json
           camera_permission_title?: string | null

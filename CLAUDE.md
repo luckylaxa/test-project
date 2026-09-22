@@ -262,3 +262,37 @@ unlabelled controls, visible focus on every tab stop.
 Verified: camera denial falls back correctly and still offers upload and sample
 models; an uploaded photo produces **zero off-origin requests**; the snapshot
 downloads; RLS blocks a signed-in non-admin from every table.
+
+---
+
+## Cart and checkout (Phase 8)
+
+Added after the original brief, which specified display-only prices. Stripe
+**Checkout Sessions**, not Payment Links — a Payment Link is one URL per price
+and cannot check out a multi-item basket.
+
+- **The browser is never trusted with money.** The basket stores product ids,
+  shade ids and quantities only. `createCheckout()` re-reads every price, name
+  and image from Supabase before building the Stripe session. A tampered
+  localStorage basket simply gets the real prices — verified by injecting a
+  forged `unitAmount` and confirming the displayed and charged totals were
+  unaffected.
+- `price_amount` is an integer in the currency's smallest unit. Floats round
+  badly and text invites charging the wrong number. `price_display` is separate
+  and remains free text — it is the wording shown on the page.
+- An unavailable or unpriced item **fails the whole checkout** rather than being
+  dropped silently, so nobody is charged for a basket they did not see.
+- Card details never reach this site: Stripe's hosted page collects them, so we
+  stay out of PCI scope. There is no orders table — Stripe is the record of
+  truth. Adding one would need a privileged writer, and this project never uses
+  the Supabase service role key.
+- The basket is read through `useSyncExternalStore`, not copied into state in an
+  effect: that avoids a hydration mismatch (the server has no basket) and keeps
+  two open tabs in step.
+- `site_settings.checkout_enabled` is the master switch. With it off, no
+  Add-to-basket buttons render and the server refuses checkout even if someone
+  has items saved in their browser.
+
+**Requires `STRIPE_SECRET_KEY`** as a server-side environment variable in Vercel
+(no `NEXT_PUBLIC_` prefix — it must never reach the browser). Without it,
+checkout fails with a clear message instead of breaking.

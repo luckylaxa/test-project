@@ -1,6 +1,6 @@
 "use client";
 
-import { ColorField, TextArea, TextInput } from "@/components/admin/fields";
+import { ColorField, Select, TextArea, TextInput, Toggle } from "@/components/admin/fields";
 import { MediaField } from "@/components/admin/media-field";
 import { SaveBar, useEditor } from "@/components/admin/save-bar";
 import { RepeaterLinks, RepeaterFooter } from "@/components/admin/repeaters";
@@ -27,6 +27,8 @@ type Form = {
   try_on_disclaimer: string;
   camera_permission_title: string;
   camera_permission_body: string;
+  currency: string;
+  checkout_enabled: boolean;
 };
 
 export function SettingsForm({ settings }: { settings: SiteSettings }) {
@@ -49,6 +51,8 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
     try_on_disclaimer: settings.try_on_disclaimer ?? "",
     camera_permission_title: settings.camera_permission_title ?? "",
     camera_permission_body: settings.camera_permission_body ?? "",
+    currency: settings.currency ?? "EUR",
+    checkout_enabled: settings.checkout_enabled ?? false,
   });
 
   const { value: v, set } = editor;
@@ -75,6 +79,8 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
         try_on_disclaimer: form.try_on_disclaimer || null,
         camera_permission_title: form.camera_permission_title || null,
         camera_permission_body: form.camera_permission_body || null,
+        currency: form.currency,
+        checkout_enabled: form.checkout_enabled,
       }),
     );
 
@@ -163,6 +169,31 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
           value={{ url: v.seo_og_image_url, alt: "" }}
           onChange={(x) => set("seo_og_image_url", x.url)}
           altRequired={false}
+        />
+      </Section>
+
+      <Section
+        title="Selling"
+        help="Payment is handled by Stripe on their own secure page — card details never reach this website."
+      >
+        <Toggle
+          label="Open the shop"
+          help="When this is off, no Add to basket buttons appear anywhere and checkout is refused, even if someone has items saved in their browser."
+          checked={v.checkout_enabled}
+          onChange={(x) => set("checkout_enabled", x)}
+        />
+        <Select
+          label="Currency"
+          help="Every product is charged in this currency. Change it only if your Stripe account is set up for it."
+          value={v.currency}
+          onChange={(x) => set("currency", x)}
+          options={[
+            { value: "EUR", label: "Euro (EUR)" },
+            { value: "GBP", label: "Pound sterling (GBP)" },
+            { value: "USD", label: "US dollar (USD)" },
+            { value: "INR", label: "Indian rupee (INR)" },
+            { value: "AED", label: "UAE dirham (AED)" },
+          ]}
         />
       </Section>
 

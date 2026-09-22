@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { Link as LinkContent, SocialLink } from "@/lib/section-content";
+import { CartButton } from "@/components/cart/cart-drawer";
 
 /**
  * Sticky header: transparent over a hero, solid once scrolled.
@@ -17,13 +18,15 @@ export function Header({
   navLinks,
   socialLinks,
   labels,
+  showCart = false,
 }: {
   brandName: string;
   logoUrl: string | null;
   logoAlt: string;
   navLinks: LinkContent[];
   socialLinks: SocialLink[];
-  labels: { navPrimary: string; menuOpen: string; menuClose: string };
+  labels: { navPrimary: string; menuOpen: string; menuClose: string; cart: string };
+  showCart?: boolean;
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -102,27 +105,31 @@ export function Header({
           </nav>
         ) : null}
 
-        <button
-          type="button"
-          className="relative z-50 flex h-8 w-8 items-center justify-center lg:hidden"
-          aria-expanded={menuOpen}
-          aria-controls="site-menu"
-          aria-label={menuOpen ? labels.menuClose : labels.menuOpen}
-          onClick={() => setMenuOpen((v) => !v)}
-        >
-          <span aria-hidden className="relative block h-3 w-6">
-            <span
-              className={`absolute left-0 block h-px w-6 bg-current transition-transform duration-500 ease-[var(--ease-editorial)] ${
-                menuOpen ? "top-1.5 rotate-45" : "top-0"
-              }`}
-            />
-            <span
-              className={`absolute left-0 block h-px w-6 bg-current transition-transform duration-500 ease-[var(--ease-editorial)] ${
-                menuOpen ? "top-1.5 -rotate-45" : "top-3"
-              }`}
-            />
-          </span>
-        </button>
+        <div className="flex items-center gap-6">
+          {showCart ? <CartButton label={labels.cart} /> : null}
+
+          <button
+            type="button"
+            className="relative z-50 flex h-8 w-8 items-center justify-center lg:hidden"
+            aria-expanded={menuOpen}
+            aria-controls="site-menu"
+            aria-label={menuOpen ? labels.menuClose : labels.menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+          >
+            <span aria-hidden className="relative block h-3 w-6">
+              <span
+                className={`absolute left-0 block h-px w-6 bg-current transition-transform duration-500 ease-[var(--ease-editorial)] ${
+                  menuOpen ? "top-1.5 rotate-45" : "top-0"
+                }`}
+              />
+              <span
+                className={`absolute left-0 block h-px w-6 bg-current transition-transform duration-500 ease-[var(--ease-editorial)] ${
+                  menuOpen ? "top-1.5 -rotate-45" : "top-3"
+                }`}
+              />
+            </span>
+          </button>
+        </div>
       </div>
 
       <div className={`h-px bg-line transition-opacity duration-700 ${scrolled ? "opacity-100" : "opacity-0"}`} />

@@ -23,6 +23,8 @@ type Form = {
   ingredients: string;
   how_to_apply: string;
   price_display: string;
+  price_amount: string;
+  is_purchasable: boolean;
   shop_url: string;
   shop_label: string;
   is_bestseller: boolean;
@@ -41,6 +43,8 @@ export function ProductForm({
   allProducts,
   related,
   modelPhoto,
+  currency,
+  checkoutEnabled,
 }: {
   product: ProductRow;
   shades: ShadeRow[];
@@ -48,6 +52,8 @@ export function ProductForm({
   allProducts: Pick<ProductRow, "id" | "name">[];
   related: string[];
   modelPhoto: string | null;
+  currency: string;
+  checkoutEnabled: boolean;
 }) {
   const router = useRouter();
   const [deleting, setDeleting] = useState(false);
@@ -62,6 +68,8 @@ export function ProductForm({
     ingredients: product.ingredients ?? "",
     how_to_apply: product.how_to_apply ?? "",
     price_display: product.price_display ?? "",
+    price_amount: product.price_amount ? String(product.price_amount / 100) : "",
+    is_purchasable: product.is_purchasable,
     shop_url: product.shop_url ?? "",
     shop_label: product.shop_label ?? "",
     is_bestseller: product.is_bestseller,
@@ -97,6 +105,11 @@ export function ProductForm({
           ingredients: form.ingredients || null,
           how_to_apply: form.how_to_apply || null,
           price_display: form.price_display || null,
+          // Stored in the currency's smallest unit; a float would round badly.
+          price_amount: form.price_amount.trim()
+            ? Math.round(Number(form.price_amount) * 100)
+            : null,
+          is_purchasable: form.is_purchasable,
           shop_url: form.shop_url || null,
           shop_label: form.shop_label || null,
           is_bestseller: form.is_bestseller,
@@ -175,13 +188,6 @@ export function ProductForm({
           onChange={(x) => set("short_description", x)}
           max={200}
           rows={3}
-        />
-        <TextInput
-          label="Price"
-          help="Shown as written. This site does not take payments, so any format is fine."
-          value={v.price_display}
-          onChange={(x) => set("price_display", x)}
-          max={20}
         />
       </Section>
 
@@ -264,7 +270,36 @@ export function ProductForm({
         </div>
       </Section>
 
-      <Section title="Buying">
+      <Section
+        title="Price and buying"
+        help={
+          checkoutEnabled
+            ? `Customers are charged the amount below, in ${currency}.`
+            : "Checkout is currently switched off in Site settings, so nothing can be bought yet."
+        }
+      >
+        <TextInput
+          label="Displayed price"
+          help="Shown on the page exactly as you type it, symbol and all."
+          value={v.price_display}
+          onChange={(x) => set("price_display", x)}
+          max={20}
+        />
+        <TextInput
+          label={`Amount charged (${currency})`}
+          help="Just the number, for example 68 or 68.50. Leave empty if this product is not for sale."
+          value={v.price_amount}
+          onChange={(x) => set("price_amount", x.replace(/[^0-9.]/g, ""))}
+        />
+        <Toggle
+          label="Available to buy"
+          help="Turn off to show the product without an Add to basket button."
+          checked={v.is_purchasable}
+          onChange={(x) => set("is_purchasable", x)}
+        />
+      </Section>
+
+      <Section title="Enquiry button" help="An optional extra button, for example a stockist link.">
         <TextInput
           label="Button wording"
           help="Leave both fields empty to hide the button."

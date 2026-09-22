@@ -107,7 +107,15 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           images={images}
           shades={shades}
           productSlug={product.slug}
-          labels={{ chooseShade: labels.t("choose_shade"), tryOnShade: labels.t("try_on_shade") }}
+          productId={product.id}
+          purchasable={Boolean(
+            settings?.checkout_enabled && product.is_purchasable && (product.price_amount ?? 0) > 0,
+          )}
+          labels={{
+            chooseShade: labels.t("choose_shade"),
+            tryOnShade: labels.t("try_on_shade"),
+            addToCart: labels.t("add_to_cart"),
+          }}
           finishLabels={finishLabels}
         />
 

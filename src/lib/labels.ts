@@ -61,6 +61,28 @@ const FALLBACKS: Record<string, string> = {
   try_on_canvas_label: "Virtual try-on preview",
   form_error_send: "We could not send that just now. Please try again, or email us directly.",
   form_error_save: "We could not save that just now. Please try again.",
+
+  // Basket and checkout
+  cart_title: "Your basket",
+  cart_button: "Basket",
+  cart_empty: "Your basket is empty.",
+  cart_subtotal: "Subtotal",
+  cart_checkout: "Go to checkout",
+  cart_continue: "Continue shopping",
+  cart_remove: "Remove",
+  cart_close: "Close",
+  cart_unavailable: "This item is no longer available",
+  cart_note:
+    "Taxes and delivery are calculated at checkout. Payment is handled securely by Stripe.",
+  add_to_cart: "Add to basket",
+  checkout_complete_title: "Thank you.",
+  checkout_complete_body:
+    "Your order is confirmed and a receipt is on its way to your email.",
+  checkout_complete_button: "Continue shopping",
+  checkout_cancelled_title: "Your basket is still here.",
+  checkout_cancelled_body:
+    "Nothing has been charged. Pick up where you left off whenever you are ready.",
+  checkout_cancelled_button: "Back to the collection",
 };
 
 export function makeLabels(settings: SiteSettings | null) {
