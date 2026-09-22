@@ -25,7 +25,7 @@ export function Header({
   logoAlt: string;
   navLinks: LinkContent[];
   socialLinks: SocialLink[];
-  labels: { navPrimary: string; menuOpen: string; menuClose: string; cart: string };
+  labels: { navPrimary: string; menuOpen: string; menuClose: string; cart: string; account: string };
   showCart?: boolean;
 }) {
   const [scrolled, setScrolled] = useState(false);
@@ -106,6 +106,14 @@ export function Header({
         ) : null}
 
         <div className="flex items-center gap-6">
+          {showCart ? (
+            <Link
+              href="/account"
+              className="hidden text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-300 hover:text-accent sm:inline"
+            >
+              {labels.account}
+            </Link>
+          ) : null}
           {showCart ? <CartButton label={labels.cart} /> : null}
 
           <button

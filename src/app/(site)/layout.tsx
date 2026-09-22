@@ -41,6 +41,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           menuOpen: labels.t("menu_open"),
           menuClose: labels.t("menu_close"),
           cart: labels.t("cart_button"),
+          account: labels.t("account_title"),
         }}
         showCart={showCart}
       />
@@ -60,6 +61,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         contactEmail={settings?.contact_email ?? null}
         contactPhone={settings?.contact_phone ?? null}
         contactAddress={settings?.contact_address ?? null}
+        contactTitle={labels.t("footer_contact_title")}
         year={year}
       />
 

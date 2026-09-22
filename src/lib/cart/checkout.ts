@@ -2,13 +2,16 @@
 
 import Stripe from "stripe";
 import { createPublicClient } from "@/lib/supabase/public";
+import { createClient } from "@/lib/supabase/server";
 import { gallery } from "@/lib/section-content";
 import { siteUrl } from "@/lib/metadata";
 import type { CartLine } from "./types";
 
 export type CheckoutResult =
   | { ok: true; url: string }
-  | { ok: false; error: string };
+  // `needs` lets the basket send the customer somewhere useful rather than
+  // just showing them a wall of text.
+  | { ok: false; error: string; needs?: "sign-in" | "address" };
 
 const MAX_LINES = 20;
 const MAX_QUANTITY = 20;
@@ -23,16 +26,12 @@ const MAX_QUANTITY = 20;
  *
  * Card details never reach this site — Stripe's hosted page collects them, so
  * we stay out of PCI scope entirely.
+ *
+ * A signed-in customer with a delivery address is required: an order that
+ * cannot be delivered is not an order. The address is read from `customers`,
+ * where RLS means a customer can only ever fetch their own.
  */
 export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult> {
-  const secret = process.env.STRIPE_SECRET_KEY;
-  if (!secret) {
-    return {
-      ok: false,
-      error: "Checkout is not configured yet. Please use the enquiry form, or try again later.",
-    };
-  }
-
   // Shape check before anything touches the database.
   const clean = (Array.isArray(lines) ? lines : [])
     .filter(
@@ -106,11 +105,60 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
     });
   }
 
+  // Who is buying, and where does it go? This is the last gate before payment:
+  // the basket and the shop have already been checked, so nobody is asked to
+  // make an account only to be told the item is gone or the shop is closed.
+  const auth = await createClient();
+  const {
+    data: { user },
+  } = await auth.auth.getUser();
+
+  if (!user) {
+    return {
+      ok: false,
+      needs: "sign-in",
+      error: "Please sign in or create an account so we can deliver your order.",
+    };
+  }
+
+  const { data: customer } = await auth
+    .from("customers")
+    .select("email, full_name, phone, address_line1, address_line2, city, postal_code, country")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  const hasAddress = Boolean(
+    customer?.address_line1 && customer?.city && customer?.postal_code && customer?.country,
+  );
+  if (!hasAddress) {
+    return {
+      ok: false,
+      needs: "address",
+      error: "Please add a delivery address before checking out.",
+    };
+  }
+
+  // Checked last, because a missing key is our problem, not something the
+  // customer can act on — telling them to sign in first would be a dead end.
+  const secret = process.env.STRIPE_SECRET_KEY;
+  if (!secret) {
+    return {
+      ok: false,
+      error: "Checkout is not configured yet. Please use the enquiry form, or try again later.",
+    };
+  }
+
   try {
     const stripe = new Stripe(secret);
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: items,
+      customer_email: user.email ?? customer?.email ?? undefined,
+      // Prefilled from the account, but Stripe still lets them correct it.
+      shipping_address_collection: {
+        allowed_countries: [customer!.country as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry],
+      },
+      metadata: { user_id: user.id },
       success_url: `${siteUrl()}/checkout/complete?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${siteUrl()}/checkout/cancelled`,
       billing_address_collection: "auto",

@@ -8,7 +8,7 @@ import { obj, text } from "@/lib/section-content";
  */
 export type Labels = ReturnType<typeof makeLabels>;
 
-const FALLBACKS: Record<string, string> = {
+export const LABEL_FALLBACKS: Record<string, string> = {
   try_on_look: "Try This Look",
   try_on_shade: "Try This Shade",
   product_details: "Details",
@@ -58,6 +58,7 @@ const FALLBACKS: Record<string, string> = {
   menu_open: "Open menu",
   menu_close: "Close menu",
   nav_primary_label: "Primary",
+  footer_contact_title: "Contact",
   try_on_canvas_label: "Virtual try-on preview",
   form_error_send: "We could not send that just now. Please try again, or email us directly.",
   form_error_save: "We could not save that just now. Please try again.",
@@ -83,6 +84,50 @@ const FALLBACKS: Record<string, string> = {
   checkout_cancelled_body:
     "Nothing has been charged. Pick up where you left off whenever you are ready.",
   checkout_cancelled_button: "Back to the collection",
+
+  // Customer accounts
+  account_title: "Your account",
+  account_signin_title: "Sign in",
+  account_signup_title: "Create an account",
+  account_signin_cta: "Sign in",
+  account_signup_cta: "Create account",
+  account_switch_to_signup: "New here? Create an account",
+  account_switch_to_signin: "Already have an account? Sign in",
+  account_signout: "Sign out",
+  account_delivery_title: "Delivery address",
+  account_delivery_help:
+    "We need this to send your order. Only you and the maison can see it.",
+  account_saved: "Saved.",
+  account_check_email: "Check your inbox to confirm your email address, then sign in.",
+  checkout_signin_required:
+    "Please sign in or create an account so we can deliver your order.",
+  checkout_address_required: "Please add a delivery address before checking out.",
+  checkout_go_to_account: "Go to your account",
+  account_email: "Email",
+  account_password: "Password",
+  account_password_help: "At least eight characters.",
+
+  // What a customer is told when signing in or registering fails. Mapped from
+  // the provider's error codes so the maison's own wording is what they read.
+  account_error_credentials: "That email and password did not match.",
+  account_error_email_taken: "There is already an account with that email. Try signing in.",
+  account_error_email_invalid: "That does not look like an email address we can deliver to.",
+  account_error_weak_password: "Please choose a longer password — at least eight characters.",
+  account_error_rate_limited:
+    "Too many attempts just now. Please wait a few minutes and try again.",
+  account_error_network: "We could not reach the server. Check your connection and try again.",
+  account_error_generic: "We could not do that just now. Please try again.",
+
+  // Delivery address form
+  account_field_full_name: "Full name",
+  account_field_phone: "Telephone",
+  account_field_address1: "Address",
+  account_field_address2: "Address line 2",
+  account_field_city: "City",
+  account_field_postcode: "Postcode",
+  account_field_country: "Country",
+  account_field_country_empty: "Select a country",
+  account_save: "Save",
 };
 
 export function makeLabels(settings: SiteSettings | null) {
@@ -92,8 +137,8 @@ export function makeLabels(settings: SiteSettings | null) {
 
   return {
     /** A UI string by key. */
-    t(key: keyof typeof FALLBACKS | string): string {
-      return text(ui[key]) ?? FALLBACKS[key] ?? "";
+    t(key: keyof typeof LABEL_FALLBACKS | string): string {
+      return text(ui[key]) ?? LABEL_FALLBACKS[key] ?? "";
     },
     /** Display name for a product category. */
     category(value: string): string {

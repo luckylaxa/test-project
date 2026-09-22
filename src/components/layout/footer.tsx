@@ -14,6 +14,7 @@ export function Footer({
   contactEmail,
   contactPhone,
   contactAddress,
+  contactTitle,
   year,
 }: {
   brandName: string;
@@ -26,6 +27,7 @@ export function Footer({
   contactEmail: string | null;
   contactPhone: string | null;
   contactAddress: string | null;
+  contactTitle: string;
   year: number;
 }) {
   const hasContact = Boolean(contactEmail || contactPhone || contactAddress);
@@ -66,7 +68,7 @@ export function Footer({
 
           {hasContact ? (
             <div className="md:col-span-3">
-              <p className="eyebrow">Contact</p>
+              <p className="eyebrow">{contactTitle}</p>
               <address className="mt-5 space-y-3 text-sm not-italic text-ink-soft">
                 {contactAddress ? <p className="whitespace-pre-line">{contactAddress}</p> : null}
                 {contactEmail ? (

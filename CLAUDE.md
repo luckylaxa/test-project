@@ -296,3 +296,52 @@ and cannot check out a multi-item basket.
 **Requires `STRIPE_SECRET_KEY`** as a server-side environment variable in Vercel
 (no `NEXT_PUBLIC_` prefix — it must never reach the browser). Without it,
 checkout fails with a clear message instead of breaking.
+
+---
+
+## Cart, checkout and customer accounts (Phase 7 additions)
+
+- **The browser never sends money.** A basket line is `{productId, shadeId,
+  quantity}` and nothing else. `createCheckout` re-reads every price, name and
+  image from the database, so a tampered `localStorage` simply gets the real
+  prices. Verified by injecting `unitAmount: 1` — display and Stripe total both
+  stayed at the real figure.
+- **Cart state uses `useSyncExternalStore`**, not `useState` + an effect. The
+  server snapshot is empty, so there is no hydration mismatch and no
+  setState-in-effect.
+- **Gate order in `createCheckout` matters.** Basket shape → shop open and items
+  valid → signed in → delivery address → Stripe key → session. The Stripe key is
+  checked last on purpose: it is our misconfiguration, not something the customer
+  can act on, so it must not pre-empt the actionable "please sign in" answer.
+  It was first, which made the sign-up gate unreachable locally.
+- `CheckoutResult.needs` (`"sign-in" | "address"`) lets the basket route to
+  `/account?reason=…` instead of showing a dead-end message.
+- **Customers are not admins.** `customers` is keyed by `user_id` with
+  select/insert/update policies all `user_id = (select auth.uid())`. Public
+  sign-ups must stay ENABLED for the shop to work; admin access is gated by the
+  separate `admins` table, so an open register cannot mint an admin.
+- `saveCustomer` takes `user_id` from the session, never from the form.
+
+## Phase 8 — handover
+
+- `ADMIN-GUIDE.md` is the non-technical manual. Its wording matches the panel's
+  actual field names ("Web address", "Feature as a bestseller", "Save & Publish");
+  if a label changes in the admin, change it there too.
+- **`ui_labels` now has an editor.** It is a jsonb column with defaults in
+  `LABEL_FALLBACKS` (`src/lib/labels.ts`), and until Phase 8 nothing in `/admin`
+  could edit it — those public strings were effectively hardcoded. Site settings
+  now has a **Wording** section that renders every fallback key, grouped, with the
+  default shown as the placeholder. Only non-empty values are stored, so clearing
+  a field restores the default rather than blanking the button.
+  `LABEL_GROUPS` appends any unlisted key under "Other", so a new fallback is
+  editable without anyone remembering to register it.
+- **Auth errors are mapped, not passed through.** `messageFor()` in
+  `auth-form.tsx` turns the provider's error codes into editable labels. Passing
+  `signUpError.message` straight to the customer leaked provider wording and was
+  not editable.
+- Known gaps, deliberately not built: no orders list in `/admin` (orders live in
+  Stripe), no shipping/tax calculation, no policy pages.
+- Supabase's built-in email sender is rate limited to a few messages an hour and
+  is not for production — sign-up confirmations will fail under real traffic
+  until a real email provider is connected. Confirmed by hitting
+  `over_email_send_rate_limit` during testing.

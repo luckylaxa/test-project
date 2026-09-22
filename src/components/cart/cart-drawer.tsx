@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "./cart-provider";
 import { createCheckout } from "@/lib/cart/checkout";
@@ -35,6 +36,7 @@ export function CartDrawer({
   currency: string;
   labels: CartLabels;
 }) {
+  const router = useRouter();
   const { lines, open, setOpen, setQuantity, remove } = useCart();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,6 +72,13 @@ export function CartDrawer({
     const result = await createCheckout(lines);
     if (result.ok) {
       window.location.href = result.url;
+      return;
+    }
+    // Being signed out or having no address is not an error to read and shrug
+    // at — it is a next step, so take them straight to it.
+    if (result.needs) {
+      setOpen(false);
+      router.push(`/account?reason=${result.needs === "sign-in" ? "checkout" : "address"}`);
       return;
     }
     setError(result.error);
