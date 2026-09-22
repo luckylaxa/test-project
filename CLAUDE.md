@@ -589,3 +589,42 @@ uppercase labels: the hit area has to come from padding, not font size.
 Now clean at both widths, no horizontal overflow. The skip link measures 1px
 because it is `sr-only` until focused, which is correct; the mobile menu's
 links measure 0 because the closed menu is `display: none`.
+
+## Policy pages
+
+Shipping, Returns & Refunds, Privacy and Terms exist as ordinary `pages` rows
+with a `rich_text` section, so the brand team edits them in `/admin` like any
+other page — no code holds policy text. All four are in `legal_links`.
+
+Razorpay requires shipping, refund, terms and privacy policies published on the
+site before it will activate an account, so this gates real payments.
+
+- **The wording is a draft, not legal advice.** Business specifics are
+  `[SQUARE BRACKETS]`: entity name, GSTIN, registered address, delivery windows
+  and charges, return window, jurisdiction. It has not been reviewed by a lawyer.
+- **The seeded privacy and terms text was replaced because it had become false.**
+  Terms said "prices are indicative and for display only. This site does not
+  process orders"; privacy said a newsletter email was all that was collected.
+  Both predate the shop. Leaving them would have been a live misstatement on a
+  site that now takes money and stores delivery addresses.
+- The try-on paragraph is kept: it is the one claim here that is both
+  distinctive and verifiably true.
+
+### The basket no longer claims tax it does not charge
+
+`cart_note` said "Taxes and delivery are calculated at checkout". Nothing
+computes either — the charge is exactly `price_amount`. It now says the price
+shown is the price paid. **Whether prices include GST is still an open business
+decision**, and adding tax or delivery would be a real build, not a wording fix.
+
+## Every page has exactly one h1
+
+Only `hero` emitted an `h1`, so a page built from text sections alone had none —
+which was true of all four policy pages, and would be true of any page an editor
+builds without a hero.
+
+`SectionHeading` now takes a `headingLevel` (the same pattern `ProductCard`,
+`CollectionCard` and `Accordion` already use), forwarded by every section that
+can open a page. `RenderSections` gives the first such section `headingLevel={1}`
+when the page has no hero. Audited across thirteen routes: one `h1` each, and it
+is the first heading on the page.

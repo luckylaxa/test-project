@@ -10,6 +10,7 @@ export function SectionHeading({
   subtext,
   align = "left",
   className = "",
+  headingLevel = 2,
   children,
 }: {
   eyebrow?: string | null;
@@ -17,6 +18,9 @@ export function SectionHeading({
   subtext?: string | null;
   align?: "left" | "center";
   className?: string;
+  /** 1 when this is the page's own title, 2 under one. A page with no hero
+   *  has no other source of an h1, and a page without one is a real defect. */
+  headingLevel?: 1 | 2;
   children?: React.ReactNode;
 }) {
   if (!eyebrow && !headline && !subtext && !children) return null;
@@ -25,9 +29,12 @@ export function SectionHeading({
     <Reveal className={`${align === "center" ? "text-center" : ""} ${className}`}>
       {eyebrow ? <p className="eyebrow">{eyebrow}</p> : null}
       {headline ? (
-        <h2 className={`mt-5 text-4xl md:text-5xl lg:text-6xl ${align === "center" ? "mx-auto" : ""}`}>
+        <Headline
+          level={headingLevel}
+          className={`mt-5 text-4xl md:text-5xl lg:text-6xl ${align === "center" ? "mx-auto" : ""}`}
+        >
           {headline}
-        </h2>
+        </Headline>
       ) : null}
       {subtext ? (
         <p
@@ -39,4 +46,18 @@ export function SectionHeading({
       {children}
     </Reveal>
   );
+}
+
+/** A heading at the level the page needs, styled identically either way. */
+function Headline({
+  level,
+  className,
+  children,
+}: {
+  level: 1 | 2;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  const Tag = level === 1 ? "h1" : "h2";
+  return <Tag className={className}>{children}</Tag>;
 }

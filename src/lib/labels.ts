@@ -73,8 +73,10 @@ export const LABEL_FALLBACKS: Record<string, string> = {
   cart_remove: "Remove",
   cart_close: "Close",
   cart_unavailable: "This item is no longer available",
+  // Only claim what the code actually does. Nothing computes tax or delivery,
+  // so promising they are "calculated at checkout" was untrue.
   cart_note:
-    "Taxes and delivery are calculated at checkout. Payment is handled securely by Razorpay.",
+    "The price shown is the price you pay — nothing is added at checkout. Payment is handled securely by Razorpay.",
   add_to_cart: "Add to basket",
   checkout_complete_title: "Thank you.",
   checkout_complete_body:

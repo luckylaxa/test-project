@@ -37,10 +37,13 @@ export async function RenderSection({
   section,
   settings,
   first,
+  headingLevel = 2,
 }: {
   section: SectionRow;
   settings: SiteSettings | null;
   first: boolean;
+  /** 1 when this section carries the page's title — see RenderSections. */
+  headingLevel?: 1 | 2;
 }) {
   const labels = makeLabels(settings);
   const { type, content } = section;
@@ -50,11 +53,11 @@ export async function RenderSection({
       return <HeroSection content={content} first={first} />;
 
     case "collections":
-      return <CollectionsSection content={content} collections={await getCollections()} labels={labels} />;
+      return <CollectionsSection headingLevel={headingLevel} content={content} collections={await getCollections()} labels={labels} />;
 
     case "bestsellers":
       return (
-        <ProductsSection
+        <ProductsSection headingLevel={headingLevel}
           content={content}
           products={await getBestsellers(num(obj(content).limit))}
           labels={labels}
@@ -62,29 +65,29 @@ export async function RenderSection({
       );
 
     case "looks":
-      return <LooksSection content={content} looks={await getLooks()} labels={labels} />;
+      return <LooksSection headingLevel={headingLevel} content={content} looks={await getLooks()} labels={labels} />;
 
     case "try_on_feature":
-      return <TryOnFeatureSection content={content} />;
+      return <TryOnFeatureSection headingLevel={headingLevel} content={content} />;
 
     case "brand_story":
     case "image_text":
-      return <ImageTextSection content={content} />;
+      return <ImageTextSection headingLevel={headingLevel} content={content} />;
 
     case "craft":
-      return <CraftSection content={content} />;
+      return <CraftSection headingLevel={headingLevel} content={content} />;
 
     case "testimonials":
-      return <TestimonialsSection content={content} testimonials={await getTestimonials()} />;
+      return <TestimonialsSection headingLevel={headingLevel} content={content} testimonials={await getTestimonials()} />;
 
     case "press":
-      return <PressSection content={content} logos={await getPressLogos()} />;
+      return <PressSection headingLevel={headingLevel} content={content} logos={await getPressLogos()} />;
 
     case "newsletter":
       return <NewsletterSection content={content} errorMessage={labels.t("form_error_save")} />;
 
     case "rich_text":
-      return <RichTextSection content={content} />;
+      return <RichTextSection headingLevel={headingLevel} content={content} />;
 
     case "contact_details":
       return <ContactDetailsSection content={content} settings={settings} />;
@@ -97,7 +100,14 @@ export async function RenderSection({
   }
 }
 
-/** Renders a page's visible sections in their saved order. */
+/**
+ * Renders a page's visible sections in their saved order.
+ *
+ * Only a hero emits an h1, so a page built from text sections alone had none
+ * at all — every policy page was like this. Where there is no hero, the first
+ * section that can show a headline carries the page's h1 instead. A page
+ * without an h1 is a real defect for anyone navigating by headings.
+ */
 export function RenderSections({
   sections,
   settings,
@@ -105,10 +115,19 @@ export function RenderSections({
   sections: SectionRow[];
   settings: SiteSettings | null;
 }) {
+  const hasHero = sections.some((s) => s.type === "hero");
+  const titleIndex = hasHero ? -1 : sections.findIndex((s) => s.type !== "newsletter");
+
   return (
     <>
       {sections.map((section, index) => (
-        <RenderSection key={section.id} section={section} settings={settings} first={index === 0} />
+        <RenderSection
+          key={section.id}
+          section={section}
+          settings={settings}
+          first={index === 0}
+          headingLevel={index === titleIndex ? 1 : 2}
+        />
       ))}
     </>
   );

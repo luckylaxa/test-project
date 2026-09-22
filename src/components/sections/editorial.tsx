@@ -16,7 +16,13 @@ import type {
 import type { Labels } from "@/lib/labels";
 
 /** Asymmetric image + text block, used by brand_story and image_text. */
-export function ImageTextSection({ content }: { content: Json }) {
+export function ImageTextSection({
+  content,
+  headingLevel = 2,
+}: {
+  content: Json;
+  headingLevel?: 1 | 2;
+}) {
   const c = obj(content);
   const eyebrow = text(c.eyebrow);
   const headline = text(c.headline);
@@ -45,7 +51,7 @@ export function ImageTextSection({ content }: { content: Json }) {
         ) : null}
 
         <div className={image ? "md:col-span-5 md:col-start-8" : "md:col-span-8 md:col-start-3"}>
-          <SectionHeading eyebrow={eyebrow} headline={headline}>
+          <SectionHeading headingLevel={headingLevel} eyebrow={eyebrow} headline={headline}>
             {body ? <p className="measure mt-7 whitespace-pre-line text-ink-soft">{body}</p> : null}
             {button ? (
               <div className="mt-9">
@@ -64,10 +70,12 @@ export function CollectionsSection({
   content,
   collections,
   labels,
+  headingLevel = 2,
 }: {
   content: Json;
   collections: CollectionRow[];
   labels: Labels;
+  headingLevel?: 1 | 2;
 }) {
   const c = obj(content);
   const cta = link(c.link);
@@ -77,7 +85,7 @@ export function CollectionsSection({
   return (
     <section className="shell py-24 md:py-32">
       <div className="flex flex-wrap items-end justify-between gap-8">
-        <SectionHeading eyebrow={text(c.eyebrow)} headline={text(c.headline)} subtext={text(c.subtext)} />
+        <SectionHeading headingLevel={headingLevel} eyebrow={text(c.eyebrow)} headline={text(c.headline)} subtext={text(c.subtext)} />
         {cta ? <TextLink content={cta} className="pb-2" /> : null}
       </div>
 
@@ -99,10 +107,12 @@ export function ProductsSection({
   content,
   products,
   labels,
+  headingLevel = 2,
 }: {
   content: Json;
   products: ProductWithShades[];
   labels: Labels;
+  headingLevel?: 1 | 2;
 }) {
   const c = obj(content);
   const cta = link(c.link);
@@ -114,7 +124,7 @@ export function ProductsSection({
   return (
     <section className="shell py-24 md:py-32">
       <div className="flex flex-wrap items-end justify-between gap-8">
-        <SectionHeading eyebrow={text(c.eyebrow)} headline={text(c.headline)} subtext={text(c.subtext)} />
+        <SectionHeading headingLevel={headingLevel} eyebrow={text(c.eyebrow)} headline={text(c.headline)} subtext={text(c.subtext)} />
         {cta ? <TextLink content={cta} className="pb-2" /> : null}
       </div>
 
@@ -136,10 +146,12 @@ export function LooksSection({
   content,
   looks,
   labels,
+  headingLevel = 2,
 }: {
   content: Json;
   looks: LookRow[];
   labels: Labels;
+  headingLevel?: 1 | 2;
 }) {
   const c = obj(content);
   const cta = link(c.link);
@@ -150,7 +162,7 @@ export function LooksSection({
     <section className="bg-canvas-soft py-24 md:py-32">
       <div className="shell">
         <div className="flex flex-wrap items-end justify-between gap-8">
-          <SectionHeading eyebrow={text(c.eyebrow)} headline={text(c.headline)} subtext={text(c.subtext)} />
+          <SectionHeading headingLevel={headingLevel} eyebrow={text(c.eyebrow)} headline={text(c.headline)} subtext={text(c.subtext)} />
           {cta ? <TextLink content={cta} className="pb-2" /> : null}
         </div>
 
@@ -169,7 +181,13 @@ export function LooksSection({
 }
 
 /** Try-on feature: split image and copy, with the studio call to action. */
-export function TryOnFeatureSection({ content }: { content: Json }) {
+export function TryOnFeatureSection({
+  content,
+  headingLevel = 2,
+}: {
+  content: Json;
+  headingLevel?: 1 | 2;
+}) {
   const c = obj(content);
   const image = media(c.image);
   const button = link(c.button);
@@ -183,7 +201,13 @@ export function TryOnFeatureSection({ content }: { content: Json }) {
         <div className="md:col-span-5">
           <Reveal>
             {text(c.eyebrow) ? <p className="eyebrow text-canvas/60">{text(c.eyebrow)}</p> : null}
-            {headline ? <h2 className="mt-5 text-4xl md:text-5xl lg:text-6xl">{headline}</h2> : null}
+            {headline ? (
+              headingLevel === 1 ? (
+                <h1 className="mt-5 text-4xl md:text-5xl lg:text-6xl">{headline}</h1>
+              ) : (
+                <h2 className="mt-5 text-4xl md:text-5xl lg:text-6xl">{headline}</h2>
+              )
+            ) : null}
             {text(c.subtext) ? (
               <p className="measure mt-6 text-canvas/75">{text(c.subtext)}</p>
             ) : null}
@@ -214,14 +238,20 @@ export function TryOnFeatureSection({ content }: { content: Json }) {
 }
 
 /** Craft highlights: a four-up of short titled notes. */
-export function CraftSection({ content }: { content: Json }) {
+export function CraftSection({
+  content,
+  headingLevel = 2,
+}: {
+  content: Json;
+  headingLevel?: 1 | 2;
+}) {
   const c = obj(content);
   const items = listItems(c.items);
   if (items.length === 0 && !text(c.headline)) return null;
 
   return (
     <section className="shell py-24 md:py-32">
-      <SectionHeading eyebrow={text(c.eyebrow)} headline={text(c.headline)} subtext={text(c.subtext)} />
+      <SectionHeading headingLevel={headingLevel} eyebrow={text(c.eyebrow)} headline={text(c.headline)} subtext={text(c.subtext)} />
       {items.length > 0 ? (
         <ul className="mt-16 grid gap-px border-t border-line bg-line sm:grid-cols-2 lg:grid-cols-4">
           {items.map((item, i) => (
@@ -242,16 +272,18 @@ export function CraftSection({ content }: { content: Json }) {
 export function TestimonialsSection({
   content,
   testimonials,
+  headingLevel = 2,
 }: {
   content: Json;
   testimonials: TestimonialRow[];
+  headingLevel?: 1 | 2;
 }) {
   const c = obj(content);
   if (testimonials.length === 0) return null;
 
   return (
     <section className="shell py-24 md:py-32">
-      <SectionHeading eyebrow={text(c.eyebrow)} headline={text(c.headline)} align="center" />
+      <SectionHeading headingLevel={headingLevel} eyebrow={text(c.eyebrow)} headline={text(c.headline)} align="center" />
       <ul className="mt-16 grid gap-12 md:grid-cols-3 md:gap-10">
         {testimonials.map((item, i) => (
           <Reveal as="li" key={item.id} delay={i * 90} className="text-center">
@@ -283,14 +315,22 @@ export function TestimonialsSection({
 }
 
 /** "As seen in" logo row. */
-export function PressSection({ content, logos }: { content: Json; logos: PressRow[] }) {
+export function PressSection({
+  content,
+  logos,
+  headingLevel = 2,
+}: {
+  content: Json;
+  logos: PressRow[];
+  headingLevel?: 1 | 2;
+}) {
   const c = obj(content);
   if (logos.length === 0) return null;
 
   return (
     <section className="border-y border-line py-16">
       <div className="shell">
-        <SectionHeading eyebrow={text(c.eyebrow)} headline={text(c.headline)} align="center" />
+        <SectionHeading headingLevel={headingLevel} eyebrow={text(c.eyebrow)} headline={text(c.headline)} align="center" />
         <ul className="mt-10 flex flex-wrap items-center justify-center gap-x-12 gap-y-8 md:gap-x-20">
           {logos.map((logo, i) => {
             const mark = logo.logo_url ? (
@@ -323,7 +363,13 @@ export function PressSection({ content, logos }: { content: Json; logos: PressRo
 }
 
 /** Long-form rich text, used for the legal pages and any prose section. */
-export function RichTextSection({ content }: { content: Json }) {
+export function RichTextSection({
+  content,
+  headingLevel = 2,
+}: {
+  content: Json;
+  headingLevel?: 1 | 2;
+}) {
   const c = obj(content);
   const html = text(c.body_html);
   const headline = text(c.headline);
@@ -332,7 +378,7 @@ export function RichTextSection({ content }: { content: Json }) {
   return (
     <section className="shell py-24 md:py-32">
       <div className="mx-auto max-w-3xl">
-        <SectionHeading eyebrow={text(c.eyebrow)} headline={headline} />
+        <SectionHeading headingLevel={headingLevel} eyebrow={text(c.eyebrow)} headline={headline} />
         {html ? (
           <div
             className="prose-editorial mt-10"
