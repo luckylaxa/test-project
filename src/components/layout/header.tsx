@@ -74,7 +74,7 @@ export function Header({
           scrolled ? "py-4" : "py-6 md:py-8"
         }`}
       >
-        <Link href="/" className="shrink-0" aria-label={brandName}>
+        <Link href="/" className="tap shrink-0" aria-label={brandName}>
           {mark}
         </Link>
 
@@ -88,7 +88,7 @@ export function Header({
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className="group relative text-[0.6875rem] uppercase tracking-[0.2em] transition-colors duration-300 hover:text-accent-text"
+                      className="tap group relative text-[0.6875rem] uppercase tracking-[0.2em] transition-colors duration-300 hover:text-accent-text"
                     >
                       {item.label}
                       <span
@@ -109,7 +109,7 @@ export function Header({
           {showCart ? (
             <Link
               href="/account"
-              className="hidden text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-300 hover:text-accent-text sm:inline"
+              className="tap hidden text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-300 hover:text-accent-text sm:inline-flex"
             >
               {labels.account}
             </Link>

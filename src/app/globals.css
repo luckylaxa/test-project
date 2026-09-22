@@ -125,6 +125,22 @@
 }
 
 @layer components {
+  /* Minimum hit area. WCAG 2.2 asks 24px; 44px is what a thumb actually
+     wants, and these controls are small uppercase type, so they need the
+     padding rather than the font size to provide it. Vertical padding only,
+     so nothing moves horizontally in a tight header or footer column. */
+  .tap {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .tap-sm {
+    display: inline-flex;
+    align-items: center;
+    min-height: 32px;
+  }
+
   /* Page gutter, shared by every section so columns line up down the page */
   .shell {
     width: 100%;

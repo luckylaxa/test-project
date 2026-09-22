@@ -294,7 +294,7 @@ export function CartButton({ label }: { label: string }) {
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-300 hover:text-accent-text"
+      className="tap text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-300 hover:text-accent-text"
     >
       {label}
       {count > 0 ? <span className="tabular-nums"> ({count})</span> : null}

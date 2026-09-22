@@ -60,7 +60,7 @@ export function TextLink({
   return (
     <Link
       href={content.href}
-      className={`group inline-flex items-center gap-3 text-[0.6875rem] uppercase tracking-[0.2em] ${className}`}
+      className={`tap group gap-3 text-[0.6875rem] uppercase tracking-[0.2em] ${className}`}
     >
       <span>{content.label}</span>
       <span

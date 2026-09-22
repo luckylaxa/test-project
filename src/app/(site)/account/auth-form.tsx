@@ -265,7 +265,7 @@ export function AuthForm({
           setMode(mode === "up" ? "in" : "up");
           setError(null);
         }}
-        className="mt-6 text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase transition-colors hover:text-ink"
+        className="tap mt-4 text-[0.6875rem] tracking-[0.16em] text-ink-muted uppercase transition-colors hover:text-ink"
       >
         {mode === "up" ? labels.toSignIn : labels.toSignUp}
       </button>

@@ -567,3 +567,25 @@ redirect allow list. To use this route, point the email template at
 The simpler answer for a shop is to turn *Confirm email* off entirely: sign-up
 then returns a session immediately and the customer is in, which is how Amazon
 and Flipkart behave. Nothing in the code needs changing for that.
+
+### Tap targets
+
+Measured at 375 and 768px after the contrast work, because this file's own
+rules say mobile first and the fix had only been checked at 1280. Several
+controls were far below the 24px WCAG 2.2 asks, the basket button among them:
+
+| Control | Was | Now |
+|---|---|---|
+| Basket, account, nav, brand mark | 19–28px | 44px |
+| "View all collections" and siblings | 27px | 44px |
+| Footer nav, contact, legal, social | 20px | 32px |
+| Sign in / register switch | 19px | 44px |
+
+`.tap` (44px) and `.tap-sm` (32px) in globals.css are `inline-flex` with a
+`min-height` and no horizontal padding, so a control grows into the whitespace
+the design already has without shifting anything sideways. These are small
+uppercase labels: the hit area has to come from padding, not font size.
+
+Now clean at both widths, no horizontal overflow. The skip link measures 1px
+because it is `sr-only` until focused, which is correct; the mobile menu's
+links measure 0 because the closed menu is `display: none`.
