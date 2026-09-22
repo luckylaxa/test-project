@@ -442,3 +442,29 @@ original ladder. Any future currency change needs the same treatment.
 
 `formatMoney` picks its locale from the currency (`LOCALE_FOR`), because rupees
 group in lakhs: 1,50,000, not 150,000.
+
+### Verified end to end (test mode)
+
+A real card payment was completed against the live Razorpay test account:
+`pay_...` reached `status=captured`, INR 6,200, with `notes` carrying the
+user id, the line items and the delivery address. The browser landed on
+`/checkout/complete` — the real confirmation, not the demo one — which only
+happens after `verifyPayment` passes, so the signature path is proven in
+practice and not just in isolation.
+
+**Test cards.** This account does **not** accept international cards:
+`4111 1111 1111 1111` fails with "International cards are not supported", and
+the basket is correctly left intact for a retry. Use a domestic card —
+`5267 3181 8797 5449`, any future expiry, any CVV — and the 3DS step takes OTP
+`1234`.
+
+**Payment methods.** Cards, Netbanking and Wallets are offered in INR. UPI is
+not, until it is enabled on the Razorpay account.
+
+### Known gap: no webhook
+
+`verifyPayment` is called from the browser once Razorpay's widget returns. If
+the customer closes the tab between the money being captured and that call,
+the payment exists at Razorpay and the site never knows: no confirmation, and
+the basket still full. Razorpay's `payment.captured` webhook is the fix, and is
+what makes this safe to leave running unattended.

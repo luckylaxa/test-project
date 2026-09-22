@@ -256,6 +256,11 @@ A short list of things that are not content, and that someone will need to do on
   price.
 - **UPI**, if you want it offered, is switched on in your Razorpay dashboard
   under payment methods. Cards, Netbanking and wallets are already available.
+
+**Trying it yourself, in test mode.** Use card `5267 3181 8797 5449`, any future
+expiry date, any three-digit CVV, and OTP `1234`. Do not use `4111 1111 1111
+1111` — that is an international card, and this Razorpay account only accepts
+Indian ones, so it will fail.
 - **Email delivery.** Supabase's built-in email sender is rate limited to a handful
   of messages an hour and is not meant for real customers. Connect a proper email
   service in Supabase, or sign-up confirmations will start failing the moment more
