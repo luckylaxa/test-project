@@ -85,10 +85,16 @@ export default async function AccountPage({
     );
   }
 
+  // With no payment provider at all — a demonstration site — there are no
+  // orders to fail to load, so the section is absent rather than apologetic.
+  const paymentsConfigured = Boolean(
+    process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET,
+  );
+
   // Scoped to this customer, so one person's orders can never reach another.
   const [{ data: customer }, orders] = await Promise.all([
     supabase.from("customers").select("*").eq("user_id", user.id).maybeSingle(),
-    listOrders({ userId: user.id }),
+    paymentsConfigured ? listOrders({ userId: user.id }) : Promise.resolve(null),
   ]);
 
   return (
@@ -139,16 +145,18 @@ export default async function AccountPage({
         }}
       />
 
-      <Orders
-        orders={orders}
-        labels={{
-          title: labels.t("account_orders_title"),
-          empty: labels.t("account_orders_empty"),
-          unavailable: labels.t("account_orders_unavailable"),
-          paid: labels.t("account_order_paid"),
-          refunded: labels.t("account_order_refunded"),
-        }}
-      />
+      {paymentsConfigured ? (
+        <Orders
+          orders={orders}
+          labels={{
+            title: labels.t("account_orders_title"),
+            empty: labels.t("account_orders_empty"),
+            unavailable: labels.t("account_orders_unavailable"),
+            paid: labels.t("account_order_paid"),
+            refunded: labels.t("account_order_refunded"),
+          }}
+        />
+      ) : null}
     </section>
   );
 }
