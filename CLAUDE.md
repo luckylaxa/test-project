@@ -147,14 +147,41 @@ field as optional.
 
 ### Imagery
 
-`public/media/*.jpg` are the hero, collection, look and journal images. The look
-and collection covers were produced by rendering each look's own shades onto the
+`public/media/*.jpg` are the hero, collection, look and journal images. The
+**look** covers were produced by rendering each look's own shades onto the
 supplied model portraits with `MakeupRenderer` — a look's cover therefore shows
-the look it links to.
+the look it links to. This file used to claim the same of the **collection**
+covers; it was not true. Those three were stock uploads sitting in Supabase
+storage, and two of them had a competitor's wordmark in shot — "LANCÔME" on
+Velours Rouge and an "ILLUMINATION MASK" tube on Lumière Nue, both legible at
+card size on the home page. They are now free-licence photographs in
+`public/media/collection-*.jpg`, chosen under the no-brand-mark rule below.
 
-`public/placeholders/*.svg` remain for **product photography only**, which nobody
-has yet. Uploading a real image in the admin panel replaces the URL with a
-storage URL; no code change is needed.
+`/media/og-default.jpg` (1200x630) is the Open Graph fallback in
+`site_settings.seo_og_image_url`, which was empty — every shared link showed no
+preview image at all.
+
+`public/media/products/<slug>-1.jpg` and `-2.jpg` are the product gallery, two
+per product: a packshot and an editorial close-up, all 1000x1250 (4:5), which is
+the ratio `GalleryAndShades` renders. They are free-licence stock photographs
+(Unsplash), chosen on one rule beyond the look: **no legible third-party brand
+mark**. Rouge Velmora's first photographs failed that rule outright - the tubes
+read "Colors Queen" and "PLUM Matte Lip's Color" - so a fictional maison was
+showing another brand's product as its own. Anything replacing these is checked
+at full size, not in a thumbnail: several otherwise perfect candidates turned out
+to carry a wordmark only visible zoomed in.
+
+`public/placeholders/*.svg` are now referenced by **nothing** - no row, no
+component. They are kept only as a fallback an editor could point at by hand.
+Uploading a real image in the admin panel replaces the URL with a storage URL;
+no code change is needed.
+
+Testimonials carry **no portraits**, deliberately. The quotes and names are
+invented, as a fictional brand's must be; putting a real photographed person's
+face beside an invented quote attributed to someone else misrepresents that
+person, whatever the photo's licence says. Three rows used to show a placeholder
+avatar and three showed nothing, so the row was visibly uneven as well. The
+renderer already handled a missing image.
 
 ---
 
