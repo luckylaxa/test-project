@@ -32,7 +32,7 @@ export default async function PagesAdminPage() {
           <li key={page.id}>
             <Link
               href={`/admin/pages/${page.slug}`}
-              className="flex items-center justify-between gap-4 py-4 transition-colors hover:text-accent"
+              className="flex items-center justify-between gap-4 py-4 transition-colors hover:text-accent-text"
             >
               <span>
                 <span className="block font-[family-name:var(--font-display)] text-xl">

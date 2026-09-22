@@ -86,7 +86,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       <article className="shell pt-32 pb-24 md:pt-44 md:pb-32">
         <header className="mb-12 md:mb-16">
           {product.collection ? (
-            <Link href={`/collections/${product.collection.slug}`} className="eyebrow hover:text-accent">
+            <Link href={`/collections/${product.collection.slug}`} className="eyebrow hover:text-accent-text">
               {product.collection.name}
             </Link>
           ) : (

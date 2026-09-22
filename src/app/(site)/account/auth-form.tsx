@@ -27,6 +27,7 @@ export type AuthLabels = {
     network: string;
     generic: string;
     oauth: string;
+    confirm: string;
   };
 };
 
@@ -63,7 +64,7 @@ function messageFor(error: unknown, errors: AuthLabels["errors"]): string {
 }
 
 const input =
-  "w-full border border-line bg-canvas px-3 py-2.5 text-sm outline-none " +
+  "w-full border border-line-strong bg-canvas px-3 py-2.5 text-sm outline-none " +
   "transition-colors duration-200 focus:border-accent";
 
 /**
@@ -89,11 +90,16 @@ export function AuthForm({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState(false);
-  const callbackFailed = params.get("error") === "auth";
+  const failure = params.get("error");
+  const callbackMessage =
+    failure === "auth" ? labels.errors.oauth : failure === "confirm" ? labels.errors.confirm : null;
 
   // Where to return to once the provider sends them back. Carried through the
   // round trip so someone who was mid-checkout lands back on checkout.
-  const nextPath = params.get("reason") === "checkout" ? "/account?reason=address" : "/account";
+  // Only same-site paths: a `next` from the address bar is attacker-supplied.
+  const requested = params.get("next") ?? "";
+  const returnTo =
+    requested.startsWith("/") && !requested.startsWith("//") ? requested : "/account";
 
   async function withGoogle() {
     setBusy(true);
@@ -103,7 +109,7 @@ export function AuthForm({
       const { error: oauthError } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(nextPath)}`,
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnTo)}`,
         },
       });
       // On success the browser is already navigating to Google, so there is
@@ -159,7 +165,7 @@ export function AuthForm({
       return;
     }
 
-    router.replace("/account");
+    router.replace(returnTo);
     router.refresh();
   }
 
@@ -238,9 +244,9 @@ export function AuthForm({
           ) : null}
         </div>
 
-        {error || callbackFailed ? (
+        {error || callbackMessage ? (
           <p role="alert" className="border border-line px-4 py-3 text-sm text-ink-soft">
-            {error ?? labels.errors.oauth}
+            {error ?? callbackMessage}
           </p>
         ) : null}
 

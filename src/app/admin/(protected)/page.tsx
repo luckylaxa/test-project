@@ -101,7 +101,7 @@ export default async function AdminDashboard() {
               {enquiries ?? 0}
             </p>
             {openEnquiries ? (
-              <p className="mt-1 text-xs text-accent">{openEnquiries} awaiting a reply</p>
+              <p className="mt-1 text-xs text-accent-text">{openEnquiries} awaiting a reply</p>
             ) : null}
           </Link>
         </div>

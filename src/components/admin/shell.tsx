@@ -75,7 +75,7 @@ export function AdminShell({
                     onClick={() => setOpen(false)}
                     aria-current={active ? "page" : undefined}
                     className={`block py-1.5 text-sm transition-colors duration-200 ${
-                      active ? "text-accent" : "text-ink-soft hover:text-ink"
+                      active ? "text-accent-text" : "text-ink-soft hover:text-ink"
                     }`}
                   >
                     {link.label}
@@ -107,7 +107,7 @@ export function AdminShell({
           <form action={signOut}>
             <button
               type="submit"
-              className="mt-2 text-[0.6875rem] tracking-[0.16em] uppercase transition-colors duration-300 hover:text-accent"
+              className="mt-2 text-[0.6875rem] tracking-[0.16em] uppercase transition-colors duration-300 hover:text-accent-text"
             >
               Sign out
             </button>
@@ -137,7 +137,7 @@ export function AdminShell({
             <p className="truncate text-xs text-ink-muted">{email}</p>
             <button
               type="submit"
-              className="mt-2 text-[0.6875rem] tracking-[0.16em] uppercase hover:text-accent"
+              className="mt-2 text-[0.6875rem] tracking-[0.16em] uppercase hover:text-accent-text"
             >
               Sign out
             </button>

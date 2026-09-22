@@ -8,6 +8,7 @@ import { AuthForm } from "./auth-form";
 import { AccountForm } from "./account-form";
 import { Orders } from "./orders";
 import { listOrders } from "@/lib/orders";
+import { isGoogleEnabled } from "@/lib/auth-providers";
 import { signOutCustomer } from "./actions";
 
 // Reads the session cookie, so it renders per request and is never cached.
@@ -26,12 +27,15 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reason?: string }>;
+  searchParams: Promise<{ reason?: string; next?: string }>;
 }) {
-  const [{ reason }, settings, supabase] = await Promise.all([
+  const [{ reason, next }, settings, supabase, googleEnabled] = await Promise.all([
     searchParams,
     getSiteSettings(),
     createClient(),
+    // Asked of the auth server, not of a setting, so the button cannot be
+    // missing because somebody forgot a toggle.
+    isGoogleEnabled(),
   ]);
   const labels = makeLabels(settings);
 
@@ -52,7 +56,7 @@ export default async function AccountPage({
         <div className="w-full max-w-sm">
           <Suspense fallback={null}>
             <AuthForm
-              googleEnabled={settings?.google_login_enabled ?? false}
+              googleEnabled={googleEnabled}
               labels={{
                 signInTitle: labels.t("account_signin_title"),
                 signUpTitle: labels.t("account_signup_title"),
@@ -76,6 +80,7 @@ export default async function AccountPage({
                   network: labels.t("account_error_network"),
                   generic: labels.t("account_error_generic"),
                   oauth: labels.t("account_error_oauth"),
+                  confirm: labels.t("account_error_confirm"),
                 },
               }}
             />
@@ -122,6 +127,7 @@ export default async function AccountPage({
 
       <AccountForm
         customer={customer}
+        returnTo={next && next.startsWith("/") && !next.startsWith("//") ? next : null}
         suggestedName={
           typeof user.user_metadata?.full_name === "string"
             ? user.user_metadata.full_name

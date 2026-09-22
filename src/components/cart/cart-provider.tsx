@@ -20,6 +20,7 @@ import { CART_STORAGE_KEY, sameLine, type CartLine } from "@/lib/cart/types";
  */
 
 const listeners = new Set<() => void>();
+
 let snapshot = "[]";
 
 function readRaw(): string {
@@ -118,6 +119,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const raw = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const lines = useMemo(() => parse(raw), [raw]);
   const [open, setOpen] = useState(false);
+
 
   const add = useCallback((line: CartLine) => {
     const current = parse(getSnapshot());

@@ -1,11 +1,12 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Tables } from "@/lib/types/database";
 import { saveCustomer } from "./actions";
 
 const input =
-  "w-full border border-line bg-canvas px-3 py-2.5 text-sm outline-none " +
+  "w-full border border-line-strong bg-canvas px-3 py-2.5 text-sm outline-none " +
   "transition-colors duration-200 focus:border-accent";
 
 const COUNTRIES = [
@@ -63,11 +64,14 @@ function Field({
 export function AccountForm({
   customer,
   suggestedName,
+  returnTo,
   labels,
 }: {
   customer: Tables<"customers"> | null;
   /** From the identity provider, for a customer who has not saved a name yet. */
   suggestedName?: string | null;
+  /** Where they were before being sent here, if they were sent from a basket. */
+  returnTo?: string | null;
   labels: {
     title: string;
     help: string;
@@ -94,6 +98,7 @@ export function AccountForm({
   });
   const [state, setState] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
 
   const set = (key: keyof typeof form) => (value: string) => {
     setForm((f) => ({ ...f, [key]: value }));
@@ -105,8 +110,12 @@ export function AccountForm({
     setState("saving");
     setError(null);
     const result = await saveCustomer(form);
-    if (result.ok) setState("saved");
-    else {
+    if (result.ok) {
+      setState("saved");
+      // They only came here because checkout needed an address. Take them
+      // back to what they were buying rather than leaving them to find it.
+      if (returnTo) router.push(returnTo);
+    } else {
       setError(result.error);
       setState("error");
     }

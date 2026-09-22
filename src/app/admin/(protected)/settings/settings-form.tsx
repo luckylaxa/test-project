@@ -30,7 +30,6 @@ type Form = {
   camera_permission_body: string;
   currency: string;
   checkout_enabled: boolean;
-  google_login_enabled: boolean;
   demo_checkout: boolean;
   labels: Record<string, string>;
 };
@@ -57,7 +56,6 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
     camera_permission_body: settings.camera_permission_body ?? "",
     currency: settings.currency ?? "INR",
     checkout_enabled: settings.checkout_enabled ?? false,
-    google_login_enabled: settings.google_login_enabled ?? false,
     demo_checkout: settings.demo_checkout ?? false,
     labels: readLabels(settings.ui_labels),
   });
@@ -88,7 +86,6 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
         camera_permission_body: form.camera_permission_body || null,
         currency: form.currency,
         checkout_enabled: form.checkout_enabled,
-        google_login_enabled: form.google_login_enabled,
         demo_checkout: form.demo_checkout,
         // Only real overrides are stored, so clearing a field restores the
         // wording the site ships with rather than blanking the button.
@@ -190,12 +187,6 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
         title="Selling"
         help="Customers sign in before paying so their order can be delivered. Payment itself is handled by Razorpay in their own secure window — card details never reach this website."
       >
-        <Toggle
-          label="Let customers sign in with Google"
-          help="Turn this on only after the Google provider has been switched on in Supabase. Until then the button sends customers to an error page they cannot get back from."
-          checked={v.google_login_enabled}
-          onChange={(x) => set("google_login_enabled", x)}
-        />
         <Toggle
           label="Open the shop"
           help="When this is off, no Add to basket buttons appear anywhere and checkout is refused, even if someone has items saved in their browser."
@@ -425,6 +416,7 @@ const LABEL_NAMES: Record<string, string> = {
   account_google: "Google sign-in button",
   account_or: "Divider between Google and email",
   account_error_oauth: "Google sign-in failed",
+  account_error_confirm: "Confirmation link expired",
   account_error_signed_out: "Session expired",
   account_error_country: "Country not chosen",
   checkout_signin_required: "Sign in needed for checkout",
@@ -489,7 +481,7 @@ const GROUPED: { title: string; keys: string[] }[] = [
       "account_error_credentials", "account_error_email_taken",
       "account_error_email_invalid", "account_error_weak_password",
       "account_error_rate_limited", "account_error_network", "account_error_generic",
-      "account_google", "account_or", "account_error_oauth",
+      "account_google", "account_or", "account_error_oauth", "account_error_confirm",
       "account_error_signed_out", "account_error_country",
     ],
   },

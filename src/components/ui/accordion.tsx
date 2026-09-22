@@ -29,7 +29,7 @@ export function Accordion({
                 aria-expanded={isOpen}
                 aria-controls={`${id}-${index}`}
                 onClick={() => setOpen(isOpen ? null : index)}
-                className="flex w-full items-center justify-between gap-6 py-5 text-left text-[0.6875rem] uppercase tracking-[0.2em] transition-colors duration-300 hover:text-accent"
+                className="flex w-full items-center justify-between gap-6 py-5 text-left text-[0.6875rem] uppercase tracking-[0.2em] transition-colors duration-300 hover:text-accent-text"
               >
                 {item.title}
                 <span aria-hidden className="relative h-3 w-3 shrink-0">

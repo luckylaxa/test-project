@@ -48,7 +48,7 @@ export function EnquiryRow({
         <div className="flex shrink-0 items-center gap-3">
           <a
             href={`mailto:${email}${subject ? `?subject=${encodeURIComponent(`Re: ${subject}`)}` : ""}`}
-            className="text-[0.6875rem] tracking-[0.14em] uppercase transition-colors hover:text-accent"
+            className="text-[0.6875rem] tracking-[0.14em] uppercase transition-colors hover:text-accent-text"
           >
             Reply
           </a>

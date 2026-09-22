@@ -88,7 +88,7 @@ export function Header({
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className="group relative text-[0.6875rem] uppercase tracking-[0.2em] transition-colors duration-300 hover:text-accent"
+                      className="group relative text-[0.6875rem] uppercase tracking-[0.2em] transition-colors duration-300 hover:text-accent-text"
                     >
                       {item.label}
                       <span
@@ -109,7 +109,7 @@ export function Header({
           {showCart ? (
             <Link
               href="/account"
-              className="hidden text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-300 hover:text-accent sm:inline"
+              className="hidden text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-300 hover:text-accent-text sm:inline"
             >
               {labels.account}
             </Link>
@@ -172,7 +172,7 @@ export function Header({
                   href={s.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="eyebrow hover:text-accent"
+                  className="eyebrow hover:text-accent-text"
                 >
                   {s.label}
                 </a>

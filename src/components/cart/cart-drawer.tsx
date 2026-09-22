@@ -79,7 +79,12 @@ export function CartDrawer({
       // shrug at — it is a next step, so take them straight to it.
       if (result.needs) {
         setOpen(false);
-        router.push(`/account?reason=${result.needs === "sign-in" ? "checkout" : "address"}`);
+        // Send them back to the page they were buying from, rather than
+        // stranding them on the account page.
+        const back = encodeURIComponent(window.location.pathname);
+        router.push(
+          `/account?reason=${result.needs === "sign-in" ? "checkout" : "address"}&next=${back}`,
+        );
         return;
       }
       setError(result.error);
@@ -180,7 +185,7 @@ export function CartDrawer({
                     <Link
                       href={`/products/${view.productSlug}`}
                       onClick={() => setOpen(false)}
-                      className="block truncate text-sm transition-colors hover:text-accent"
+                      className="block truncate text-sm transition-colors hover:text-accent-text"
                     >
                       {view.productName}
                     </Link>
@@ -207,7 +212,7 @@ export function CartDrawer({
                         type="button"
                         aria-label="Decrease quantity"
                         onClick={() => setQuantity(line, line.quantity - 1)}
-                        className="px-2.5 py-1 text-sm transition-colors hover:text-accent"
+                        className="px-2.5 py-1 text-sm transition-colors hover:text-accent-text"
                       >
                         −
                       </button>
@@ -216,7 +221,7 @@ export function CartDrawer({
                         type="button"
                         aria-label="Increase quantity"
                         onClick={() => setQuantity(line, line.quantity + 1)}
-                        className="px-2.5 py-1 text-sm transition-colors hover:text-accent"
+                        className="px-2.5 py-1 text-sm transition-colors hover:text-accent-text"
                       >
                         +
                       </button>
@@ -289,7 +294,7 @@ export function CartButton({ label }: { label: string }) {
     <button
       type="button"
       onClick={() => setOpen(true)}
-      className="text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-300 hover:text-accent"
+      className="text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-300 hover:text-accent-text"
     >
       {label}
       {count > 0 ? <span className="tabular-nums"> ({count})</span> : null}

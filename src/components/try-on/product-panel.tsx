@@ -108,7 +108,7 @@ export function ProductPanel({
                     </h3>
                     <Link
                       href={`/products/${product.slug}`}
-                      className="shrink-0 text-[0.625rem] tracking-[0.14em] text-ink-muted uppercase transition-colors duration-300 hover:text-accent"
+                      className="shrink-0 text-[0.625rem] tracking-[0.14em] text-ink-muted uppercase transition-colors duration-300 hover:text-accent-text"
                     >
                       {labels.viewProduct}
                     </Link>

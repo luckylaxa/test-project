@@ -45,7 +45,7 @@ export function LoginForm({ denied }: { denied: boolean }) {
   }
 
   const input =
-    "w-full border border-line bg-canvas px-3 py-2.5 text-sm outline-none " +
+    "w-full border border-line-strong bg-canvas px-3 py-2.5 text-sm outline-none " +
     "transition-colors duration-200 focus:border-accent";
 
   return (

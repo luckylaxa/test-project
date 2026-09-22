@@ -493,3 +493,77 @@ the delivery address, because `createCheckout` puts them there.
   not have.
 - This does not replace a `payment.captured` webhook for *fulfilment alerts*;
   it removes the need for one to see what was paid.
+
+## Accessibility and speed corrections
+
+Two earlier claims in this file were wrong, and are corrected here.
+
+### Contrast was never measured
+
+Phase 6 audited structure — headings, alt text, labels, focus — and this file
+then claimed "real contrast even with a soft palette". Colour was never
+measured. When it was, three things failed:
+
+| Token | Was | On canvas-soft | Now | Now |
+|---|---|---|---|---|
+| `--ink-muted` | `#8a827a` | 3.33:1 FAIL | `#736c65` | 4.55:1 PASS |
+| accent as text | `#c2a36b` | 2.11:1 FAIL | `--accent-text` | 4.87:1 PASS |
+| control borders | `rgba(11,11,11,.12)` | 1.30:1 FAIL | `--line-strong` | 3.03:1 PASS |
+
+- `--ink-muted` is now **the lightest text the palette allows**. Anything
+  lighter fails AA on `--canvas-soft`. Do not lighten it back.
+- **The accent cannot be trusted as text**: editors choose it, and champagne on
+  ivory is 2.28:1. `--accent-text` is `color-mix(in srgb, var(--accent) 60%,
+  var(--ink) 40%)`, which clears AA whatever colour is picked. Use `--accent`
+  for fills, rules and swatches; `--accent-text` for words.
+- `--line` stays a hairline for decorative dividers. Anything a person must
+  find and type into uses `--line-strong`, which meets the 3:1 WCAG asks of a
+  control boundary. The sign-in fields were previously near-invisible.
+
+### The site was not slow, the animation was
+
+Measured click-to-readable on a nav link:
+
+| | Before | After |
+|---|---|---|
+| navigation committed | 103ms | 103ms |
+| page wrapper opaque | 505ms | 204ms |
+| first section visible | 906ms | 404ms |
+
+Next commits the navigation in ~100ms either way. The rest was
+`.page-enter` (0.55s) stacked on `.reveal` (1.1s), both starting from
+`opacity: 0` — roughly 800ms of invented latency on every click. Now 0.18s and
+0.45s. **Anything long here is felt as the site being slow**, not as calm.
+
+## Sign-in returns you where you were
+
+`createCheckout` refusing with `needs` sends the customer to
+`/account?reason=…&next=<path they were on>`. `next` is honoured after sign-in,
+after Google, and after the address is saved — always sanitised to same-site
+paths, since it arrives from the address bar. Previously every route ended on
+`/account`, leaving someone mid-purchase to find their basket again.
+
+## Google sign-in is detected, not configured
+
+`isGoogleEnabled()` (`src/lib/auth-providers.ts`) asks the auth server whether
+the provider is on — a redirect means yes, 400 `provider is not enabled` means
+no — cached for minutes. The `site_settings.google_login_enabled` toggle is
+gone from the admin panel (the column is dormant): a setting that has to be
+kept in step with the Supabase dashboard drifts, and when it drifts the button
+either vanishes for no visible reason or dead-ends. **The button now appears by
+itself the moment Google is configured in Supabase**, and never before.
+
+## Confirmation emails
+
+`/auth/confirm` redeems `token_hash` + `type` through `verifyOtp`, so an
+expired or reused link lands on a page that says so instead of a dead tab.
+
+A confirmation link reading "site can't be reached" is **not** this route: it
+means Supabase's **Site URL** still points at `localhost:3000`. Set it to the
+deployed URL under Authentication → URL Configuration, and add that URL to the
+redirect allow list. To use this route, point the email template at
+`{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type={{ .EmailActionType }}`.
+
+The simpler answer for a shop is to turn *Confirm email* off entirely: sign-up
+then returns a session immediately and the customer is in, which is how Amazon
+and Flipkart behave. Nothing in the code needs changing for that.

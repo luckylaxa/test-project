@@ -36,7 +36,7 @@ export function ContactDetailsSection({
               {entry.href ? (
                 <a
                   href={entry.href(entry.value as string)}
-                  className="transition-colors duration-300 hover:text-accent"
+                  className="transition-colors duration-300 hover:text-accent-text"
                 >
                   {entry.value}
                 </a>

@@ -13,21 +13,33 @@
   --canvas-soft: #f4f0e9;
   --canvas-deep: #ebe4d9;
 
-  /* Ink */
+  /* Ink. Every value here is measured against --canvas and --canvas-soft:
+     --ink-muted is the lightest text the palette allows and still clears
+     WCAG AA at 4.55:1 on the darker of the two. It used to be #8a827a,
+     which measured 3.33:1 and failed. */
   --ink: #0b0b0b;
   --ink-soft: #3a3733;
-  --ink-muted: #8a827a;
+  --ink-muted: #736c65;
 
   /* Accent — champagne gold. Editable in Site Settings. */
   --accent: #c2a36b;
+
+  /* The accent is editor-chosen, so it cannot be trusted to be legible as
+     text — champagne on ivory is 2.28:1. Mixed toward ink it clears AA
+     whatever colour is picked, while still reading as the brand colour.
+     Use --accent for fills, rules and swatches; --accent-text for words. */
+  --accent-text: color-mix(in srgb, var(--accent) 60%, var(--ink) 40%);
 
   /* Nudes, for swatch backdrops and section washes */
   --nude: #d9c7ba;
   --nude-deep: #b39b8c;
 
-  /* Hairlines — the only dividers this design uses */
-  --line: rgba(11, 11, 11, 0.12);
-  --line-soft: rgba(11, 11, 11, 0.07);
+  /* Hairlines — the only dividers this design uses. --line is decorative;
+     anything a person has to find and click or type into uses --line-strong,
+     which meets the 3:1 that WCAG asks of a control's boundary. */
+  --line: rgba(11, 11, 11, 0.18);
+  --line-soft: rgba(11, 11, 11, 0.1);
+  --line-strong: rgba(11, 11, 11, 0.44);
   --line-invert: rgba(251, 249, 245, 0.22);
 
   /* Editorial rhythm */
@@ -55,10 +67,12 @@
   --color-ink-soft: var(--ink-soft);
   --color-ink-muted: var(--ink-muted);
   --color-accent: var(--accent);
+  --color-accent-text: var(--accent-text);
   --color-nude: var(--nude);
   --color-nude-deep: var(--nude-deep);
   --color-line: var(--line);
   --color-line-soft: var(--line-soft);
+  --color-line-strong: var(--line-strong);
   --color-line-invert: var(--line-invert);
 
   --font-display: var(--font-display), "Cormorant Garamond", Georgia, serif;
@@ -219,7 +233,9 @@
      site feel busy, and any transform here would fight the sections' own
      reveal animation. */
   .page-enter {
-    animation: page-enter 0.55s var(--ease-editorial) both;
+    /* Measured: navigation commits in ~100ms, so anything long here is pure
+       invented latency. Short enough to feel soft, not to feel slow. */
+    animation: page-enter 0.18s var(--ease-editorial) both;
   }
 
   @keyframes page-enter {
@@ -234,10 +250,10 @@
   /* Slow reveal used by sections as they enter the viewport */
   .reveal {
     opacity: 0;
-    transform: translateY(1.25rem);
+    transform: translateY(0.75rem);
     transition:
-      opacity 1.1s var(--ease-editorial),
-      transform 1.1s var(--ease-editorial);
+      opacity 0.45s var(--ease-editorial),
+      transform 0.45s var(--ease-editorial);
   }
 
   .reveal[data-shown="true"] {

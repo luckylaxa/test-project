@@ -56,7 +56,7 @@ export function Footer({
                 <ul className="mt-5 space-y-3">
                   {column.links.map((item) => (
                     <li key={`${item.label}-${item.href}`}>
-                      <Link href={item.href} className="text-sm text-ink-soft transition-colors duration-300 hover:text-accent">
+                      <Link href={item.href} className="text-sm text-ink-soft transition-colors duration-300 hover:text-accent-text">
                         {item.label}
                       </Link>
                     </li>
@@ -73,14 +73,14 @@ export function Footer({
                 {contactAddress ? <p className="whitespace-pre-line">{contactAddress}</p> : null}
                 {contactEmail ? (
                   <p>
-                    <a href={`mailto:${contactEmail}`} className="transition-colors duration-300 hover:text-accent">
+                    <a href={`mailto:${contactEmail}`} className="transition-colors duration-300 hover:text-accent-text">
                       {contactEmail}
                     </a>
                   </p>
                 ) : null}
                 {contactPhone ? (
                   <p>
-                    <a href={`tel:${contactPhone.replace(/\s+/g, "")}`} className="transition-colors duration-300 hover:text-accent">
+                    <a href={`tel:${contactPhone.replace(/\s+/g, "")}`} className="transition-colors duration-300 hover:text-accent-text">
                       {contactPhone}
                     </a>
                   </p>
@@ -103,7 +103,7 @@ export function Footer({
                     href={s.url}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[0.6875rem] tracking-[0.14em] text-ink-muted uppercase transition-colors duration-300 hover:text-accent"
+                    className="text-[0.6875rem] tracking-[0.14em] text-ink-muted uppercase transition-colors duration-300 hover:text-accent-text"
                   >
                     {s.label}
                   </a>
@@ -118,7 +118,7 @@ export function Footer({
                 <li key={`${item.label}-${item.href}`}>
                   <Link
                     href={item.href}
-                    className="text-[0.6875rem] tracking-[0.14em] text-ink-muted uppercase transition-colors duration-300 hover:text-accent"
+                    className="text-[0.6875rem] tracking-[0.14em] text-ink-muted uppercase transition-colors duration-300 hover:text-accent-text"
                   >
                     {item.label}
                   </Link>

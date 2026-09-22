@@ -137,6 +137,8 @@ export const LABEL_FALLBACKS: Record<string, string> = {
   account_google: "Continue with Google",
   account_or: "or",
   account_error_oauth: "That sign-in did not complete. Please try again.",
+  account_error_confirm:
+    "That confirmation link has expired or has already been used. Please sign in, or register again.",
   account_error_signed_out: "Please sign in again.",
   account_error_country: "Please choose a country.",
 
