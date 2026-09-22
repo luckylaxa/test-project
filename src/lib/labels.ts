@@ -113,6 +113,27 @@ export const LABEL_FALLBACKS: Record<string, string> = {
     "We cannot show your orders just now. Nothing is wrong with any order you have placed.",
   account_order_paid: "Paid",
   account_order_refunded: "Refunded",
+
+  // Order tracking. The step names are what a customer reads on their order.
+  order_status_placed: "Order placed",
+  order_status_packed: "Packed",
+  order_status_shipped: "Shipped",
+  order_status_out_for_delivery: "Out for delivery",
+  order_status_delivered: "Delivered",
+  order_status_cancelled: "Cancelled",
+  order_tracking_title: "Track this order",
+  order_tracking_courier: "Courier",
+  order_tracking_number: "Tracking number",
+  order_tracking_link: "Track with the courier",
+  order_refund_note: "A refund has been issued to your original payment method.",
+  order_refund_partial: "A partial refund has been issued.",
+
+  // Saved items
+  wishlist_title: "Saved items",
+  wishlist_empty: "Nothing saved yet.",
+  wishlist_add: "Save",
+  wishlist_remove: "Saved",
+  wishlist_sign_in: "Sign in to save items.",
   account_delivery_title: "Delivery address",
   account_delivery_help:
     "We need this to send your order. Only you and the maison can see it.",

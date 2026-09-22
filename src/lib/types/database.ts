@@ -298,6 +298,56 @@ export type Database = {
         Update: { created_at?: string; email?: string; id?: string; source?: string | null }
         Relationships: []
       }
+      order_status: {
+        Row: {
+          courier: string | null
+          created_at: string
+          note: string | null
+          payment_id: string
+          status: string
+          tracking_number: string | null
+          tracking_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          courier?: string | null
+          created_at?: string
+          note?: string | null
+          payment_id: string
+          status?: string
+          tracking_number?: string | null
+          tracking_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          courier?: string | null
+          created_at?: string
+          note?: string | null
+          payment_id?: string
+          status?: string
+          tracking_number?: string | null
+          tracking_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      wishlist: {
+        Row: { created_at: string; product_id: string; user_id: string }
+        Insert: { created_at?: string; product_id: string; user_id: string }
+        Update: { created_at?: string; product_id?: string; user_id?: string }
+        Relationships: [
+          {
+            foreignKeyName: "wishlist_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pages: {
         Row: {
           created_at: string

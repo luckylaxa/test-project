@@ -1,3 +1,5 @@
+import { createClient } from "@/lib/supabase/server";
+
 /**
  * Orders, read back from Razorpay.
  *
@@ -14,6 +16,16 @@
  * undefined in the browser and a listing would simply come back null — but
  * import this from server components and actions only.
  */
+
+/** Where an order is, as far as the brand team has recorded. */
+export type Fulfilment = {
+  status: string;
+  courier: string | null;
+  trackingNumber: string | null;
+  trackingUrl: string | null;
+  note: string | null;
+  updatedAt: string | null;
+};
 
 export type Order = {
   paymentId: string;
@@ -33,7 +45,18 @@ export type Order = {
   userId: string | null;
   createdAt: string;
   refunded: number;
+  /** Null until the brand team records anything; treated as "placed". */
+  fulfilment: Fulfilment | null;
 };
+
+/** The journey a parcel takes, in order. Used to draw progress. */
+export const FULFILMENT_STEPS = [
+  "placed",
+  "packed",
+  "shipped",
+  "out_for_delivery",
+  "delivered",
+] as const;
 
 type RazorpayPayment = {
   id: string;
@@ -84,6 +107,7 @@ function toOrder(p: RazorpayPayment): Order {
     userId: p.notes?.user_id ?? null,
     createdAt: new Date(p.created_at * 1000).toISOString(),
     refunded: p.amount_refunded ?? 0,
+    fulfilment: null,
   };
 }
 
@@ -116,8 +140,49 @@ export async function listOrders({
     if (userId) orders = orders.filter((o) => o.userId === userId);
     if (!includeUnpaid) orders = orders.filter((o) => o.paid);
 
-    return orders;
+    return attachFulfilment(orders);
   } catch {
     return null;
+  }
+}
+
+/**
+ * Adds what the brand team has recorded about delivery.
+ *
+ * Read through the caller's own session, so RLS decides what comes back: a
+ * customer sees their own rows, an admin sees every row. A failure here is
+ * never fatal — the payment is still the order, and the page simply shows it
+ * as placed.
+ */
+async function attachFulfilment(orders: Order[]): Promise<Order[]> {
+  if (orders.length === 0) return orders;
+
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from("order_status")
+      .select("payment_id, status, courier, tracking_number, tracking_url, note, updated_at")
+      .in("payment_id", orders.map((o) => o.paymentId));
+
+    const byPayment = new Map((data ?? []).map((row) => [row.payment_id, row]));
+
+    return orders.map((order) => {
+      const row = byPayment.get(order.paymentId);
+      return row
+        ? {
+            ...order,
+            fulfilment: {
+              status: row.status,
+              courier: row.courier,
+              trackingNumber: row.tracking_number,
+              trackingUrl: row.tracking_url,
+              note: row.note,
+              updatedAt: row.updated_at,
+            },
+          }
+        : order;
+    });
+  } catch {
+    return orders;
   }
 }

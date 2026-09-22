@@ -3,6 +3,7 @@ import { CsvExport } from "@/components/admin/csv-export";
 import { requireAdmin } from "@/lib/admin/guard";
 import { listOrders } from "@/lib/orders";
 import { formatMoney } from "@/lib/cart/types";
+import { OrderRow } from "./order-row";
 
 export const instant = false;
 
@@ -74,7 +75,7 @@ export default async function OrdersPage() {
       ) : (
         <ul className="max-w-3xl border-t border-line">
           {orders.map((order) => (
-            <li key={order.paymentId} className="border-b border-line py-5">
+            <OrderRow key={order.paymentId} order={order}>
               <div className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1">
                 <p className="text-sm">{order.items ?? "—"}</p>
                 <p className="text-sm">{formatMoney(order.amount, order.currency)}</p>
@@ -107,7 +108,7 @@ export default async function OrdersPage() {
               </p>
 
               <p className="mt-2 font-mono text-[0.6875rem] text-ink-muted">{order.paymentId}</p>
-            </li>
+            </OrderRow>
           ))}
         </ul>
       )}

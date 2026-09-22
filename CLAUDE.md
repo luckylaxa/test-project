@@ -628,3 +628,47 @@ builds without a hero.
 can open a page. `RenderSections` gives the first such section `headingLevel={1}`
 when the page has no hero. Audited across thirteen routes: one `h1` each, and it
 is the first heading on the page.
+
+## Order tracking and saved items
+
+Two tables (migration `velmora_order_status_and_wishlist`), both RLS own-rows.
+
+**`order_status`** is keyed by the Razorpay `payment_id`, so it annotates a
+payment rather than duplicating it — there is still no second order ledger.
+Razorpay knows a payment was captured and refunded; it knows nothing about
+packing, couriers or delivery, and that is the only thing a customer means by
+"track my order".
+
+- Customer reads their own rows; only `is_admin()` writes. No service role key.
+- `saveOrderStatus` takes `user_id` from the payment's own notes, read server
+  side — the form supplies the payment id, never the owner, so an admin cannot
+  accidentally attach a stranger's order to someone else.
+- An order with no row shows as **placed**: paying for something places it.
+- Refunds come from Razorpay (`amount_refunded`), not from this table, and
+  replace the progress track rather than sitting alongside it.
+- Verified with two accounts: the owner sees courier and tracking number, the
+  second account sees neither.
+
+**`wishlist`** is `(user_id, product_id)`. A product hidden or deleted since it
+was saved drops out of the list rather than rendering a broken card.
+
+`SaveSlot` wraps the session read in `Suspense` so the product page **stays
+static** — whether *you* saved something is per-visitor, and making the whole
+page render per request for one heart would have cost the cache.
+
+## Type was too light to read
+
+Body was `font-weight: 300` at `0.9375rem`. Jost is a geometric sans with thin
+strokes; at 300 on ivory it read as faint grey rather than as text, which is
+what "not readable" meant — the colour fix alone did not solve it.
+
+| | Was | Now |
+|---|---|---|
+| Body | 300 / 15px | **400 / 16px** |
+| Headings (Cormorant) | 300 | **400** |
+| `.eyebrow` and 11px UI labels | 400 / 11px | **500 / 12px** |
+
+16px is the browser default and the accessibility baseline. Cormorant is a
+high-contrast serif whose thin strokes vanish at 300 once a heading is smaller
+than a hero. Weights 300–500 were already loaded, so none of this added a
+download.

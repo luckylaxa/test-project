@@ -7,6 +7,8 @@ import { buildMetadata } from "@/lib/metadata";
 import { AuthForm } from "./auth-form";
 import { AccountForm } from "./account-form";
 import { Orders } from "./orders";
+import { Saved, type SavedItem } from "./saved";
+import { gallery } from "@/lib/section-content";
 import { listOrders } from "@/lib/orders";
 import { isGoogleEnabled } from "@/lib/auth-providers";
 import { signOutCustomer } from "./actions";
@@ -97,10 +99,32 @@ export default async function AccountPage({
   );
 
   // Scoped to this customer, so one person's orders can never reach another.
-  const [{ data: customer }, orders] = await Promise.all([
+  const [{ data: customer }, orders, { data: savedRows }] = await Promise.all([
     supabase.from("customers").select("*").eq("user_id", user.id).maybeSingle(),
     paymentsConfigured ? listOrders({ userId: user.id }) : Promise.resolve(null),
+    supabase
+      .from("wishlist")
+      .select("product_id, created_at, products(id, name, slug, price_amount, gallery, is_visible)")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false }),
   ]);
+
+  // A product hidden or deleted since it was saved simply drops out.
+  const saved: SavedItem[] = (savedRows ?? []).flatMap((row) => {
+    const p = row.products;
+    if (!p || !p.is_visible) return [];
+    const image = gallery(p.gallery)[0];
+    return [
+      {
+        id: p.id,
+        name: p.name,
+        slug: p.slug,
+        priceAmount: p.price_amount,
+        image: image?.url ?? null,
+        imageAlt: image?.alt ?? p.name,
+      },
+    ];
+  });
 
   return (
     <section className="shell py-32 md:py-40">
@@ -151,6 +175,12 @@ export default async function AccountPage({
         }}
       />
 
+      <Saved
+        items={saved}
+        currency={settings?.currency ?? "INR"}
+        labels={{ title: labels.t("wishlist_title"), empty: labels.t("wishlist_empty") }}
+      />
+
       {paymentsConfigured ? (
         <Orders
           orders={orders}
@@ -160,6 +190,20 @@ export default async function AccountPage({
             unavailable: labels.t("account_orders_unavailable"),
             paid: labels.t("account_order_paid"),
             refunded: labels.t("account_order_refunded"),
+            trackingTitle: labels.t("order_tracking_title"),
+            courier: labels.t("order_tracking_courier"),
+            trackingNumber: labels.t("order_tracking_number"),
+            trackingLink: labels.t("order_tracking_link"),
+            refundNote: labels.t("order_refund_note"),
+            refundPartial: labels.t("order_refund_partial"),
+            step: {
+              placed: labels.t("order_status_placed"),
+              packed: labels.t("order_status_packed"),
+              shipped: labels.t("order_status_shipped"),
+              out_for_delivery: labels.t("order_status_out_for_delivery"),
+              delivered: labels.t("order_status_delivered"),
+              cancelled: labels.t("order_status_cancelled"),
+            },
           }}
         />
       ) : null}

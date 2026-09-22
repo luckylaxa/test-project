@@ -7,6 +7,7 @@ import { Reveal } from "@/components/ui/reveal";
 import { getProduct, getProductSlugs, getSiteSettings, slugParams } from "@/lib/content";
 import { gallery } from "@/lib/section-content";
 import { makeLabels } from "@/lib/labels";
+import { SaveSlot } from "@/components/ui/save-slot";
 import { buildMetadata, siteUrl } from "@/lib/metadata";
 import { jsonLdScript } from "@/lib/sanitize";
 import { GalleryAndShades } from "./gallery-and-shades";
@@ -118,6 +119,17 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           }}
           finishLabels={finishLabels}
         />
+
+        <div className="mt-6">
+          <SaveSlot
+            productId={product.id}
+            labels={{
+              add: labels.t("wishlist_add"),
+              remove: labels.t("wishlist_remove"),
+              signIn: labels.t("wishlist_sign_in"),
+            }}
+          />
+        </div>
 
         {shopLink ? (
           <div className="mt-10">
