@@ -213,8 +213,13 @@ which keeps you out of the rules that apply to handling card numbers yourself.
 A payment counts as real only once Razorpay's signature has been checked on our
 server, so nobody can fake a confirmation.
 
-**Where to see orders:** in your Razorpay dashboard, not here. This admin panel
-does not currently list orders.
+**Where to see orders:** **Orders** in the sidebar, under Customers. Each row
+shows what was bought, where it goes, how it was paid and a payment reference,
+and the whole list downloads as a spreadsheet. Failed and abandoned attempts are
+shown too — several in a row usually means a payment method is rejecting people.
+
+Razorpay remains the full record, including refunds, and is where you go to
+refund anything. Customers can see their own orders on their account page.
 
 ### Demonstration mode
 

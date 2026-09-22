@@ -105,6 +105,12 @@ export const LABEL_FALLBACKS: Record<string, string> = {
   account_switch_to_signup: "New here? Create an account",
   account_switch_to_signin: "Already have an account? Sign in",
   account_signout: "Sign out",
+  account_orders_title: "Your orders",
+  account_orders_empty: "No orders yet.",
+  account_orders_unavailable:
+    "We cannot show your orders just now. Nothing is wrong with any order you have placed.",
+  account_order_paid: "Paid",
+  account_order_refunded: "Refunded",
   account_delivery_title: "Delivery address",
   account_delivery_help:
     "We need this to send your order. Only you and the maison can see it.",

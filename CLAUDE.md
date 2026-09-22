@@ -468,3 +468,28 @@ the customer closes the tab between the money being captured and that call,
 the payment exists at Razorpay and the site never knows: no confirmation, and
 the basket still full. Razorpay's `payment.captured` webhook is the fix, and is
 what makes this safe to leave running unattended.
+
+## Orders (read back from Razorpay)
+
+Closes the webhook gap's *consequence* without a webhook, a table or a
+privileged writer. `src/lib/orders.ts` lists payments from Razorpay's REST API
+and maps them; every payment already carries `notes.user_id`, the line items and
+the delivery address, because `createCheckout` puts them there.
+
+- **`/account` shows a customer their own orders.** `listOrders({ userId })`
+  filters server-side, so one customer's orders can never reach another —
+  verified with a second account, which sees "No orders yet" while the first
+  sees its paid order.
+- **`/admin/orders`** lists everything, including failed and abandoned
+  attempts (`includeUnpaid`), because a payment method rejecting everyone shows
+  up there first. Gated by `requireAdmin()` like every other admin page, with
+  CSV export.
+- **`null` means "could not read", `[]` means "none".** The screens word those
+  differently: a customer must never be told they have no orders because a key
+  was missing.
+- Razorpay cannot filter by notes, so a listing scans the most recent `WINDOW`
+  (100) payments. Past that, older orders stop appearing — at real volume this
+  needs an orders table, which needs a writer this project deliberately does
+  not have.
+- This does not replace a `payment.captured` webhook for *fulfilment alerts*;
+  it removes the need for one to see what was paid.

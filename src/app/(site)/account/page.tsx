@@ -6,6 +6,8 @@ import { makeLabels } from "@/lib/labels";
 import { buildMetadata } from "@/lib/metadata";
 import { AuthForm } from "./auth-form";
 import { AccountForm } from "./account-form";
+import { Orders } from "./orders";
+import { listOrders } from "@/lib/orders";
 import { signOutCustomer } from "./actions";
 
 // Reads the session cookie, so it renders per request and is never cached.
@@ -83,11 +85,11 @@ export default async function AccountPage({
     );
   }
 
-  const { data: customer } = await supabase
-    .from("customers")
-    .select("*")
-    .eq("user_id", user.id)
-    .maybeSingle();
+  // Scoped to this customer, so one person's orders can never reach another.
+  const [{ data: customer }, orders] = await Promise.all([
+    supabase.from("customers").select("*").eq("user_id", user.id).maybeSingle(),
+    listOrders({ userId: user.id }),
+  ]);
 
   return (
     <section className="shell py-32 md:py-40">
@@ -134,6 +136,17 @@ export default async function AccountPage({
           postcode: labels.t("account_field_postcode"),
           country: labels.t("account_field_country"),
           countryEmpty: labels.t("account_field_country_empty"),
+        }}
+      />
+
+      <Orders
+        orders={orders}
+        labels={{
+          title: labels.t("account_orders_title"),
+          empty: labels.t("account_orders_empty"),
+          unavailable: labels.t("account_orders_unavailable"),
+          paid: labels.t("account_order_paid"),
+          refunded: labels.t("account_order_refunded"),
         }}
       />
     </section>

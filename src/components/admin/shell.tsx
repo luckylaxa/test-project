@@ -32,8 +32,9 @@ const NAV = [
     ],
   },
   {
-    group: "People",
+    group: "Customers",
     links: [
+      { href: "/admin/orders", label: "Orders" },
       { href: "/admin/newsletter", label: "Newsletter" },
       { href: "/admin/enquiries", label: "Enquiries" },
     ],
