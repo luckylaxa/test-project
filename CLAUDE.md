@@ -371,3 +371,33 @@ Only a save through `withAdmin()` calls `updateTag`, so a row changed by raw SQL
 keeps serving the old object — including, after a migration, one missing the new
 column entirely (a `?? false` then silently wins). Change settings through
 `/admin`, or rebuild, rather than assuming the page is broken.
+
+## Demonstration checkout
+
+`site_settings.demo_checkout` (migration `velmora_demo_checkout`, default
+`false`) lets the purchase flow be shown without a payment provider.
+
+- **It is the last step only.** The demo branch sits after every real gate in
+  `createCheckout` — basket shape, shop open, items available and priced,
+  signed in, delivery address. Only the Stripe call is replaced, by a redirect
+  to `/checkout/complete?demo=1`. So a demo exercises the real flow.
+- **A configured key always wins**: `if (!secret && settings.demo_checkout)`.
+  Adding `STRIPE_SECRET_KEY` turns real payments on even if the toggle was left
+  set; the reverse cannot happen by accident. Verified both ways in a browser.
+- **The wording never lies.** `cart_demo_note` replaces `cart_note` in the
+  basket, and `Completion` swaps the confirmation heading and body for
+  `checkout_demo_*`. All editable.
+- `(site)/layout.tsx` applies the same `&& !process.env.STRIPE_SECRET_KEY`
+  rule, so the basket cannot promise a demonstration while real payments run.
+  That layout is part of the static shell, so the env var is read at **build**
+  time — fine on Vercel, where an env change needs a redeploy anyway, but it
+  means a local `next build` without the key and `next start` with it will
+  disagree. Build and run with the same environment.
+
+### Email confirmation blocks sign-up
+
+Supabase Auth has *Confirm email* on, so `signUp` returns no session and
+`signInWithPassword` answers `email_not_confirmed`. Combined with the built-in
+sender's rate limit, nobody can complete registration. For a demo, turn
+*Confirm email* off; for production, connect a real SMTP provider. Google
+sign-in sidesteps both.

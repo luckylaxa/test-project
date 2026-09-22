@@ -50,7 +50,11 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
   const supabase = createPublicClient();
 
   const [{ data: settings }, { data: products }] = await Promise.all([
-    supabase.from("site_settings").select("currency, checkout_enabled, brand_name").eq("id", 1).maybeSingle(),
+    supabase
+      .from("site_settings")
+      .select("currency, checkout_enabled, demo_checkout, brand_name")
+      .eq("id", 1)
+      .maybeSingle(),
     supabase
       .from("products")
       .select("id, name, slug, price_amount, is_purchasable, is_visible, gallery, shades(id, name, is_visible)")
@@ -141,6 +145,17 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
   // Checked last, because a missing key is our problem, not something the
   // customer can act on — telling them to sign in first would be a dead end.
   const secret = process.env.STRIPE_SECRET_KEY;
+
+  // Demo mode: everything above still had to pass — a real basket, an open
+  // shop, available items, a signed-in customer with somewhere to deliver to.
+  // Only the payment itself is skipped, and the page it lands on says so.
+  //
+  // A configured key always wins, so adding one turns real payments on even if
+  // somebody forgets this toggle. The reverse can never happen by accident.
+  if (!secret && settings.demo_checkout) {
+    return { ok: true, url: "/checkout/complete?demo=1" };
+  }
+
   if (!secret) {
     return {
       ok: false,

@@ -214,6 +214,26 @@ the rules that apply to handling card numbers yourself.
 **Where to see orders:** in your Stripe dashboard, not here. This admin panel does
 not currently list orders.
 
+### Demonstration mode
+
+Site settings → Selling → **Demonstration mode** lets people walk the whole
+purchase without any money moving. They still sign in, still save a delivery
+address, still press checkout — but no card is asked for and no order is placed.
+The basket says so before they start, and the confirmation page says so again
+afterwards.
+
+Use it to show the shop to people before payments are set up.
+
+It switches itself off the moment real payments are configured: if a Stripe key
+is present, checkout goes to Stripe and the demonstration notice disappears,
+whatever this toggle says. You cannot accidentally leave a live shop pretending
+to be a demo.
+
+**For anyone other than you to sign up during a demo**, turn *Confirm email* off
+in Supabase → Authentication → Sign In / Providers → Email. Otherwise every new
+customer is told to check an inbox for a message that the built-in sender is too
+rate limited to deliver.
+
 **Newsletter** and **Enquiries** in the sidebar are the two things visitors submit
 that do land here. Both can be read here and downloaded as a spreadsheet file (CSV).
 

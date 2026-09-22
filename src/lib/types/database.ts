@@ -579,6 +579,7 @@ export type Database = {
           category_labels: Json
           checkout_enabled: boolean
           currency: string
+          demo_checkout: boolean
           finish_labels: Json
           ui_labels: Json
           camera_permission_title: string | null
@@ -608,6 +609,7 @@ export type Database = {
           category_labels?: Json
           checkout_enabled?: boolean
           currency?: string
+          demo_checkout?: boolean
           finish_labels?: Json
           ui_labels?: Json
           camera_permission_title?: string | null
@@ -637,6 +639,7 @@ export type Database = {
           category_labels?: Json
           checkout_enabled?: boolean
           currency?: string
+          demo_checkout?: boolean
           finish_labels?: Json
           ui_labels?: Json
           camera_permission_title?: string | null

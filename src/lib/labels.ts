@@ -85,6 +85,13 @@ export const LABEL_FALLBACKS: Record<string, string> = {
     "Nothing has been charged. Pick up where you left off whenever you are ready.",
   checkout_cancelled_button: "Back to the collection",
 
+  // Demo mode — shown instead of the real confirmation when payment is skipped
+  checkout_demo_title: "A demonstration order.",
+  checkout_demo_body:
+    "Nothing was charged and no order has been placed. This is a preview of how buying will work, not the shop itself.",
+  cart_demo_note:
+    "This shop is in demonstration mode. You can walk through checkout, but no payment is taken and no order is placed.",
+
   // Customer accounts
   account_title: "Your account",
   account_signin_title: "Sign in",

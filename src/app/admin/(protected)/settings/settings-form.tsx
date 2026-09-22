@@ -31,6 +31,7 @@ type Form = {
   currency: string;
   checkout_enabled: boolean;
   google_login_enabled: boolean;
+  demo_checkout: boolean;
   labels: Record<string, string>;
 };
 
@@ -57,6 +58,7 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
     currency: settings.currency ?? "EUR",
     checkout_enabled: settings.checkout_enabled ?? false,
     google_login_enabled: settings.google_login_enabled ?? false,
+    demo_checkout: settings.demo_checkout ?? false,
     labels: readLabels(settings.ui_labels),
   });
 
@@ -87,6 +89,7 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
         currency: form.currency,
         checkout_enabled: form.checkout_enabled,
         google_login_enabled: form.google_login_enabled,
+        demo_checkout: form.demo_checkout,
         // Only real overrides are stored, so clearing a field restores the
         // wording the site ships with rather than blanking the button.
         ui_labels: Object.fromEntries(
@@ -198,6 +201,12 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
           help="When this is off, no Add to basket buttons appear anywhere and checkout is refused, even if someone has items saved in their browser."
           checked={v.checkout_enabled}
           onChange={(x) => set("checkout_enabled", x)}
+        />
+        <Toggle
+          label="Demonstration mode"
+          help="Lets people walk through checkout without paying: no card is asked for, no money moves and no order is placed. The basket and the confirmation page both say so. This is ignored the moment real payments are configured."
+          checked={v.demo_checkout}
+          onChange={(x) => set("demo_checkout", x)}
         />
         <Select
           label="Currency"
@@ -372,6 +381,9 @@ const LABEL_NAMES: Record<string, string> = {
   checkout_cancelled_title: "Checkout cancelled heading",
   checkout_cancelled_body: "Checkout cancelled text",
   checkout_cancelled_button: "Checkout cancelled button",
+  checkout_demo_title: "Demo order heading",
+  checkout_demo_body: "Demo order text",
+  cart_demo_note: "Demo mode basket notice",
   account_title: "Account heading",
   account_signin_title: "Sign in heading",
   account_signup_title: "Register heading",
@@ -450,6 +462,7 @@ const GROUPED: { title: string; keys: string[] }[] = [
       "checkout_complete_title", "checkout_complete_body", "checkout_complete_button",
       "checkout_cancelled_title", "checkout_cancelled_body", "checkout_cancelled_button",
       "checkout_signin_required", "checkout_address_required", "checkout_go_to_account",
+      "checkout_demo_title", "checkout_demo_body", "cart_demo_note",
     ],
   },
   {
