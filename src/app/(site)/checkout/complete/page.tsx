@@ -14,9 +14,10 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 /**
- * Shown after Stripe redirects back from a completed payment.
+ * Shown once a payment has been confirmed.
  *
- * It does not confirm the payment itself — Stripe is the record of truth, and a
+ * It does not confirm the payment itself — that already happened server side,
+ * where the signature was checked. Razorpay remains the record of truth, and a
  * success URL can be opened by anyone. It simply acknowledges and empties the
  * basket.
  */

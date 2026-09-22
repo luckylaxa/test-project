@@ -202,17 +202,19 @@ The order of events:
 1. They add items to the basket.
 2. They press checkout. If they are not signed in, they are taken to sign up.
 3. Once signed in, if they have no delivery address, they are asked for one.
-4. Then they go to **Stripe** to pay.
+4. Then a **Razorpay** payment window opens over the page.
 
 They can register with an email and password, or with Google if you have turned
 **Let customers sign in with Google** on in site settings. See section 10 for the
 one-time setup that toggle depends on.
 
-Card details never touch this site. Stripe collects them, which keeps you out of
-the rules that apply to handling card numbers yourself.
+Card details never touch this site. Razorpay collects them in its own window,
+which keeps you out of the rules that apply to handling card numbers yourself.
+A payment counts as real only once Razorpay's signature has been checked on our
+server, so nobody can fake a confirmation.
 
-**Where to see orders:** in your Stripe dashboard, not here. This admin panel does
-not currently list orders.
+**Where to see orders:** in your Razorpay dashboard, not here. This admin panel
+does not currently list orders.
 
 ### Demonstration mode
 
@@ -224,8 +226,8 @@ afterwards.
 
 Use it to show the shop to people before payments are set up.
 
-It switches itself off the moment real payments are configured: if a Stripe key
-is present, checkout goes to Stripe and the demonstration notice disappears,
+It switches itself off the moment real payments are configured: if Razorpay keys
+are present, checkout goes to Razorpay and the demonstration notice disappears,
 whatever this toggle says. You cannot accidentally leave a live shop pretending
 to be a demo.
 
@@ -243,8 +245,12 @@ that do land here. Both can be read here and downloaded as a spreadsheet file (C
 
 A short list of things that are not content, and that someone will need to do once:
 
-- **Stripe key.** The site needs `STRIPE_SECRET_KEY` set on the server. Until then
-  checkout tells customers it is not configured.
+- **Razorpay keys.** The site needs `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`
+  set on the server. Until then checkout tells customers it is not configured,
+  or runs in demonstration mode if that is switched on.
+- **Currency.** Razorpay accounts handle Indian rupees by default; other
+  currencies need international payments enabled on your Razorpay account. The
+  site is set to euro, so check this before opening the shop.
 - **Email delivery.** Supabase's built-in email sender is rate limited to a handful
   of messages an hour and is not meant for real customers. Connect a proper email
   service in Supabase, or sign-up confirmations will start failing the moment more

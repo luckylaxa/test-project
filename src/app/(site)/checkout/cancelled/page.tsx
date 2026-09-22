@@ -10,7 +10,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildMetadata({ title: labels.t("checkout_cancelled_title"), path: "/checkout/cancelled" });
 }
 
-/** Stripe sends people here if they back out. The basket is deliberately kept. */
+/** Where someone lands if they back out of paying. The basket is deliberately kept. */
 export default async function CheckoutCancelledPage() {
   const settings = await getSiteSettings();
   const labels = makeLabels(settings);

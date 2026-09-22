@@ -1,14 +1,27 @@
 "use server";
 
-import Stripe from "stripe";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import { gallery } from "@/lib/section-content";
-import { siteUrl } from "@/lib/metadata";
 import type { CartLine } from "./types";
 
+/** What the browser needs to open Razorpay's payment modal. */
+export type RazorpayOrder = {
+  orderId: string;
+  amount: number;
+  currency: string;
+  /** Public by design — it identifies the merchant, it does not authorise. */
+  keyId: string;
+  brandName: string;
+  prefill: { name: string; email: string; contact: string };
+};
+
 export type CheckoutResult =
-  | { ok: true; url: string }
+  | { ok: true; order: RazorpayOrder }
+  // Demonstration mode skips payment entirely and goes straight to the
+  // confirmation, which says plainly that nothing was charged.
+  | { ok: true; demoUrl: string }
   // `needs` lets the basket send the customer somewhere useful rather than
   // just showing them a wall of text.
   | { ok: false; error: string; needs?: "sign-in" | "address" };
@@ -16,16 +29,23 @@ export type CheckoutResult =
 const MAX_LINES = 20;
 const MAX_QUANTITY = 20;
 
+function credentials() {
+  const keyId = process.env.RAZORPAY_KEY_ID;
+  const keySecret = process.env.RAZORPAY_KEY_SECRET;
+  return keyId && keySecret ? { keyId, keySecret } : null;
+}
+
 /**
- * Turns a basket into a Stripe Checkout Session.
+ * Turns a basket into a Razorpay order.
  *
  * The browser sends only product ids, shade ids and quantities. Every price,
  * name and image is read back from the database here. That is the whole point:
  * a customer can edit anything in their own browser, so nothing they send about
  * money is trusted. A tampered basket simply gets the real prices.
  *
- * Card details never reach this site — Stripe's hosted page collects them, so
- * we stay out of PCI scope entirely.
+ * Card details never reach this site — Razorpay's own modal collects them, so
+ * we stay out of PCI scope entirely. The order is created server side so the
+ * amount is fixed before the customer ever sees a payment form.
  *
  * A signed-in customer with a delivery address is required: an order that
  * cannot be delivered is not an order. The address is read from `customers`,
@@ -65,10 +85,11 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
     return { ok: false, error: "Checkout is currently closed. Please use the enquiry form." };
   }
 
-  const currency = (settings.currency || "EUR").toLowerCase();
+  const currency = (settings.currency || "INR").toUpperCase();
   const byId = new Map((products ?? []).map((p) => [p.id, p]));
 
-  const items: Stripe.Checkout.SessionCreateParams.LineItem[] = [];
+  let total = 0;
+  const summary: string[] = [];
 
   for (const line of clean) {
     const product = byId.get(line.productId);
@@ -91,23 +112,15 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
       shadeName = shade.name;
     }
 
-    const image = gallery(product.gallery)[0]?.url;
-    const absoluteImage = image?.startsWith("http") ? image : image ? `${siteUrl()}${image}` : undefined;
-
-    items.push({
-      quantity: line.quantity,
-      price_data: {
-        currency,
-        // The price comes from this row, never from the request body.
-        unit_amount: product.price_amount,
-        product_data: {
-          name: shadeName ? `${product.name} — ${shadeName}` : product.name,
-          images: absoluteImage ? [absoluteImage] : undefined,
-          metadata: { product_id: product.id, shade_id: line.shadeId ?? "" },
-        },
-      },
-    });
+    // The price comes from this row, never from the request body.
+    total += product.price_amount * line.quantity;
+    summary.push(
+      `${line.quantity} × ${shadeName ? `${product.name} — ${shadeName}` : product.name}`,
+    );
+    void gallery(product.gallery);
   }
+
+  if (total <= 0) return { ok: false, error: "Your basket is empty." };
 
   // Who is buying, and where does it go? This is the last gate before payment:
   // the basket and the shop have already been checked, so nobody is asked to
@@ -142,21 +155,16 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
     };
   }
 
-  // Checked last, because a missing key is our problem, not something the
-  // customer can act on — telling them to sign in first would be a dead end.
-  const secret = process.env.STRIPE_SECRET_KEY;
+  const creds = credentials();
 
-  // Demo mode: everything above still had to pass — a real basket, an open
-  // shop, available items, a signed-in customer with somewhere to deliver to.
-  // Only the payment itself is skipped, and the page it lands on says so.
-  //
-  // A configured key always wins, so adding one turns real payments on even if
-  // somebody forgets this toggle. The reverse can never happen by accident.
-  if (!secret && settings.demo_checkout) {
-    return { ok: true, url: "/checkout/complete?demo=1" };
+  // Demonstration mode: everything above still had to pass. Only the payment
+  // is skipped, and the page it lands on says so. Configured keys always win,
+  // so enabling real payments cannot be undone by a forgotten toggle.
+  if (!creds && settings.demo_checkout) {
+    return { ok: true, demoUrl: "/checkout/complete?demo=1" };
   }
 
-  if (!secret) {
+  if (!creds) {
     return {
       ok: false,
       error: "Checkout is not configured yet. Please use the enquiry form, or try again later.",
@@ -164,26 +172,85 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
   }
 
   try {
-    const stripe = new Stripe(secret);
-    const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      line_items: items,
-      customer_email: user.email ?? customer?.email ?? undefined,
-      // Prefilled from the account, but Stripe still lets them correct it.
-      shipping_address_collection: {
-        allowed_countries: [customer!.country as Stripe.Checkout.SessionCreateParams.ShippingAddressCollection.AllowedCountry],
+    const response = await fetch("https://api.razorpay.com/v1/orders", {
+      method: "POST",
+      headers: {
+        Authorization: `Basic ${Buffer.from(`${creds.keyId}:${creds.keySecret}`).toString("base64")}`,
+        "Content-Type": "application/json",
       },
-      metadata: { user_id: user.id },
-      success_url: `${siteUrl()}/checkout/complete?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${siteUrl()}/checkout/cancelled`,
-      billing_address_collection: "auto",
-      phone_number_collection: { enabled: false },
+      body: JSON.stringify({
+        amount: total,
+        currency,
+        // Ties the order back to the customer without a table of our own.
+        notes: {
+          user_id: user.id,
+          items: summary.join(", ").slice(0, 250),
+          deliver_to: [customer?.address_line1, customer?.city, customer?.postal_code, customer?.country]
+            .filter(Boolean)
+            .join(", ")
+            .slice(0, 250),
+        },
+      }),
+      cache: "no-store",
     });
 
-    if (!session.url) return { ok: false, error: "Stripe did not return a checkout page." };
-    return { ok: true, url: session.url };
+    if (!response.ok) return { ok: false, error: "We could not start checkout just now. Please try again." };
+
+    const order = (await response.json()) as { id?: string; amount?: number; currency?: string };
+    if (!order.id) return { ok: false, error: "We could not start checkout just now. Please try again." };
+
+    return {
+      ok: true,
+      order: {
+        orderId: order.id,
+        amount: order.amount ?? total,
+        currency: order.currency ?? currency,
+        keyId: creds.keyId,
+        brandName: settings.brand_name || "",
+        prefill: {
+          name: customer?.full_name ?? "",
+          email: user.email ?? customer?.email ?? "",
+          contact: customer?.phone ?? "",
+        },
+      },
+    };
   } catch {
     // Never surface a provider error verbatim — it can leak configuration.
     return { ok: false, error: "We could not start checkout just now. Please try again." };
   }
+}
+
+/**
+ * Confirms that a payment really happened.
+ *
+ * The browser reports its own success, which is worth nothing on its own —
+ * anyone can call this action with invented ids. Razorpay signs
+ * `order_id|payment_id` with the key secret, which only the server holds, so
+ * recomputing the HMAC is what actually proves the payment. Compared in
+ * constant time, because a byte-by-byte comparison leaks the expected value.
+ */
+export async function verifyPayment(input: {
+  orderId: string;
+  paymentId: string;
+  signature: string;
+}): Promise<{ ok: boolean }> {
+  const creds = credentials();
+  if (!creds) return { ok: false };
+
+  const { orderId, paymentId, signature } = input;
+  if (
+    typeof orderId !== "string" ||
+    typeof paymentId !== "string" ||
+    typeof signature !== "string"
+  ) {
+    return { ok: false };
+  }
+
+  const expected = createHmac("sha256", creds.keySecret)
+    .update(`${orderId}|${paymentId}`)
+    .digest();
+  const given = Buffer.from(signature, "hex");
+
+  if (expected.length !== given.length) return { ok: false };
+  return { ok: timingSafeEqual(expected, given) };
 }

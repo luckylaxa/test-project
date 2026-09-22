@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useCart } from "./cart-provider";
-import { createCheckout } from "@/lib/cart/checkout";
+import { createCheckout, verifyPayment } from "@/lib/cart/checkout";
+import { loadRazorpay, payWithRazorpay } from "@/lib/cart/razorpay";
 import { formatMoney, type CartLineView } from "@/lib/cart/types";
 
 export type CartLabels = {
@@ -18,6 +19,8 @@ export type CartLabels = {
   close: string;
   note: string | null;
   unavailable: string;
+  paymentUnavailable: string;
+  paymentUnverified: string;
 };
 
 /**
@@ -70,19 +73,57 @@ export function CartDrawer({
     setBusy(true);
     setError(null);
     const result = await createCheckout(lines);
-    if (result.ok) {
-      window.location.href = result.url;
+
+    if (!result.ok) {
+      // Being signed out or having no address is not an error to read and
+      // shrug at — it is a next step, so take them straight to it.
+      if (result.needs) {
+        setOpen(false);
+        router.push(`/account?reason=${result.needs === "sign-in" ? "checkout" : "address"}`);
+        return;
+      }
+      setError(result.error);
+      setBusy(false);
       return;
     }
-    // Being signed out or having no address is not an error to read and shrug
-    // at — it is a next step, so take them straight to it.
-    if (result.needs) {
+
+    if ("demoUrl" in result) {
       setOpen(false);
-      router.push(`/account?reason=${result.needs === "sign-in" ? "checkout" : "address"}`);
+      router.push(result.demoUrl);
       return;
     }
-    setError(result.error);
-    setBusy(false);
+
+    try {
+      const Razorpay = await loadRazorpay();
+      const paid = await payWithRazorpay(result.order, Razorpay);
+
+      // Closing the modal is not a failure. Leave the basket exactly as it
+      // was so they can pick it up again.
+      if (!paid) {
+        setBusy(false);
+        return;
+      }
+
+      // The browser saying "paid" proves nothing; the server checks the
+      // signature before we show anyone a confirmation.
+      const verified = await verifyPayment({
+        orderId: paid.razorpay_order_id,
+        paymentId: paid.razorpay_payment_id,
+        signature: paid.razorpay_signature,
+      });
+
+      if (!verified.ok) {
+        setError(labels.paymentUnverified);
+        setBusy(false);
+        return;
+      }
+
+      setOpen(false);
+      router.push("/checkout/complete");
+    } catch {
+      setError(labels.paymentUnavailable);
+      setBusy(false);
+    }
   }
 
   if (!open) return null;

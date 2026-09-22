@@ -23,7 +23,9 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
   // Exactly the rule createCheckout applies, so the basket can never promise a
   // demonstration while real payments are being taken. This is a server
   // component: only the boolean crosses to the browser, never the key.
-  const demoCheckout = (settings?.demo_checkout ?? false) && !process.env.STRIPE_SECRET_KEY;
+  const demoCheckout =
+    (settings?.demo_checkout ?? false) &&
+    !(process.env.RAZORPAY_KEY_ID && process.env.RAZORPAY_KEY_SECRET);
 
   return (
     <CartProvider>
@@ -82,6 +84,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             remove: labels.t("cart_remove"),
             close: labels.t("cart_close"),
             unavailable: labels.t("cart_unavailable"),
+            paymentUnavailable: labels.t("cart_payment_unavailable"),
+            paymentUnverified: labels.t("cart_payment_unverified"),
             // Say so before they check out, not only after.
             note: demoCheckout ? labels.t("cart_demo_note") : labels.t("cart_note"),
           }}

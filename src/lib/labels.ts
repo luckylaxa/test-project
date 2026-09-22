@@ -74,7 +74,7 @@ export const LABEL_FALLBACKS: Record<string, string> = {
   cart_close: "Close",
   cart_unavailable: "This item is no longer available",
   cart_note:
-    "Taxes and delivery are calculated at checkout. Payment is handled securely by Stripe.",
+    "Taxes and delivery are calculated at checkout. Payment is handled securely by Razorpay.",
   add_to_cart: "Add to basket",
   checkout_complete_title: "Thank you.",
   checkout_complete_body:
@@ -89,6 +89,10 @@ export const LABEL_FALLBACKS: Record<string, string> = {
   checkout_demo_title: "A demonstration order.",
   checkout_demo_body:
     "Nothing was charged and no order has been placed. This is a preview of how buying will work, not the shop itself.",
+  cart_payment_unavailable:
+    "We could not open the payment window. Please check your connection and try again.",
+  cart_payment_unverified:
+    "We could not confirm that payment. If money has left your account, please contact us before trying again.",
   cart_demo_note:
     "This shop is in demonstration mode. You can walk through checkout, but no payment is taken and no order is placed.",
 

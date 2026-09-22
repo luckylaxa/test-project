@@ -401,3 +401,36 @@ Supabase Auth has *Confirm email* on, so `signUp` returns no session and
 sender's rate limit, nobody can complete registration. For a demo, turn
 *Confirm email* off; for production, connect a real SMTP provider. Google
 sign-in sidesteps both.
+
+## Payments: Razorpay (replaced Stripe)
+
+Stripe is gone, along with its dependency. Razorpay needs no SDK — order
+creation is a `fetch` to their REST API with Basic auth, and signature
+verification is Node's built-in `crypto`.
+
+- **The flow is a modal, not a redirect.** The server creates an order
+  (`POST /v1/orders`) and returns its id plus the *key id*, which is public by
+  design. The browser opens Razorpay's widget with it; on success the widget
+  hands back `razorpay_order_id`, `razorpay_payment_id` and
+  `razorpay_signature`.
+- **The browser's word is worth nothing.** `verifyPayment()` recomputes
+  `HMAC-SHA256(order_id|payment_id)` with the key secret — which only the
+  server has — and compares with `timingSafeEqual`, after a length check,
+  because a plain `===` on the hex leaks the expected value byte by byte.
+  Nobody sees a confirmation until that passes.
+- **The amount is fixed server side** before the customer sees a payment form,
+  so the widget cannot be opened for a different total.
+- `loadRazorpay()` injects `checkout.razorpay.com/v1/checkout.js` only when
+  someone actually pays — browsing the site contacts no payment provider at
+  all. Verified: the only off-origin host while browsing is Supabase.
+- Closing the modal, or `payment.failed`, is not an error. The basket is left
+  exactly as it was.
+- Env: `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`, both server-side, no
+  `NEXT_PUBLIC_` prefix. Absent + `demo_checkout` on → demonstration mode.
+
+### Currency
+
+Razorpay accounts are enabled for INR by default; anything else needs
+international payments switched on. Order creation succeeds in EUR on this test
+account, but that does not prove a EUR payment will clear. `site_settings.currency`
+is the one place to change it.

@@ -188,7 +188,7 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
 
       <Section
         title="Selling"
-        help="Customers sign in before paying so their order can be delivered. Payment itself is handled by Stripe on their own secure page — card details never reach this website."
+        help="Customers sign in before paying so their order can be delivered. Payment itself is handled by Razorpay in their own secure window — card details never reach this website."
       >
         <Toggle
           label="Let customers sign in with Google"
@@ -210,7 +210,7 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
         />
         <Select
           label="Currency"
-          help="Every product is charged in this currency. Change it only if your Stripe account is set up for it."
+          help="Every product is charged in this currency. Change it only if your Razorpay account accepts it — most accounts are enabled for Indian rupees, and other currencies need international payments switched on."
           value={v.currency}
           onChange={(x) => set("currency", x)}
           options={[
@@ -384,6 +384,8 @@ const LABEL_NAMES: Record<string, string> = {
   checkout_demo_title: "Demo order heading",
   checkout_demo_body: "Demo order text",
   cart_demo_note: "Demo mode basket notice",
+  cart_payment_unavailable: "Payment window failed to open",
+  cart_payment_unverified: "Payment could not be confirmed",
   account_title: "Account heading",
   account_signin_title: "Sign in heading",
   account_signup_title: "Register heading",
@@ -463,6 +465,7 @@ const GROUPED: { title: string; keys: string[] }[] = [
       "checkout_cancelled_title", "checkout_cancelled_body", "checkout_cancelled_button",
       "checkout_signin_required", "checkout_address_required", "checkout_go_to_account",
       "checkout_demo_title", "checkout_demo_body", "cart_demo_note",
+      "cart_payment_unavailable", "cart_payment_unverified",
     ],
   },
   {
