@@ -16,12 +16,14 @@ export function Header({
   logoAlt,
   navLinks,
   socialLinks,
+  labels,
 }: {
   brandName: string;
   logoUrl: string | null;
   logoAlt: string;
   navLinks: LinkContent[];
   socialLinks: SocialLink[];
+  labels: { navPrimary: string; menuOpen: string; menuClose: string };
 }) {
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -58,6 +60,8 @@ export function Header({
 
   return (
     <header
+      data-site-header=""
+      data-solid={scrolled || menuOpen}
       className={`fixed inset-x-0 top-0 z-50 transition-colors duration-700 ease-[var(--ease-editorial)] ${
         scrolled || menuOpen ? "bg-canvas/95 backdrop-blur-sm" : "bg-transparent"
       }`}
@@ -72,7 +76,7 @@ export function Header({
         </Link>
 
         {navLinks.length > 0 ? (
-          <nav aria-label="Primary" className="hidden lg:block">
+          <nav aria-label={labels.navPrimary} className="hidden lg:block">
             <ul className="flex items-center gap-10">
               {navLinks.map((item) => {
                 const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -103,7 +107,7 @@ export function Header({
           className="relative z-50 flex h-8 w-8 items-center justify-center lg:hidden"
           aria-expanded={menuOpen}
           aria-controls="site-menu"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-label={menuOpen ? labels.menuClose : labels.menuOpen}
           onClick={() => setMenuOpen((v) => !v)}
         >
           <span aria-hidden className="relative block h-3 w-6">
@@ -129,7 +133,7 @@ export function Header({
         hidden={!menuOpen}
         className="fixed inset-0 top-0 z-40 bg-canvas px-[var(--gutter)] pt-28 pb-12 lg:hidden"
       >
-        <nav aria-label="Primary mobile">
+        <nav aria-label={labels.navPrimary}>
           <ul className="flex flex-col gap-1">
             {navLinks.map((item, i) => (
               <li key={`${item.label}-${item.href}`} className="border-b border-line-soft">

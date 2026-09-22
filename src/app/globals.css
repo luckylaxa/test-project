@@ -201,6 +201,19 @@
   .prose-editorial hr { border: 0; border-top: 1px solid var(--line); margin: 3em 0; }
 }
 
+@layer components {
+  /* A transparent header over a full-bleed hero needs light type: dark ink
+     vanishes into a dark photograph. Once the header turns solid on scroll it
+     reverts to ink. Real photography exposed this; the pale placeholder hid it. */
+  body:has([data-hero-media]) [data-site-header][data-solid="false"] {
+    color: var(--canvas);
+  }
+
+  body:has([data-hero-media]) [data-site-header][data-solid="false"] .eyebrow {
+    color: color-mix(in srgb, var(--canvas) 80%, transparent);
+  }
+}
+
 @layer utilities {
   /* Soft cross-fade between pages. Opacity only: moving the whole page makes a
      site feel busy, and any transform here would fight the sections' own

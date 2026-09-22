@@ -66,6 +66,7 @@ export default async function TryOnPage() {
     error: labels.t("try_on_error"),
     products: labels.t("try_on_products"),
     close: labels.t("try_on_close"),
+    canvasLabel: labels.t("try_on_canvas_label"),
   };
 
   return (

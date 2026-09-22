@@ -3,12 +3,14 @@ import { Footer } from "@/components/layout/footer";
 import { PageTransition } from "@/components/layout/page-transition";
 import { getCopyrightYear, getSiteSettings } from "@/lib/content";
 import { footerColumns, links, socialLinks } from "@/lib/section-content";
+import { makeLabels } from "@/lib/labels";
 
 /** Chrome shared by every public page. Admin routes sit outside this group. */
 export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const [settings, year] = await Promise.all([getSiteSettings(), getCopyrightYear()]);
   const brandName = settings?.brand_name ?? "";
   const social = socialLinks(settings?.social_links);
+  const labels = makeLabels(settings);
 
   return (
     <>
@@ -16,7 +18,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-ink focus:px-5 focus:py-3 focus:text-[0.6875rem] focus:tracking-[0.2em] focus:text-canvas focus:uppercase"
       >
-        Skip to content
+        {labels.t("skip_to_content")}
       </a>
 
       <Header
@@ -25,6 +27,11 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
         logoAlt={settings?.logo_alt ?? brandName}
         navLinks={links(settings?.nav_links)}
         socialLinks={social}
+        labels={{
+          navPrimary: labels.t("nav_primary_label"),
+          menuOpen: labels.t("menu_open"),
+          menuClose: labels.t("menu_close"),
+        }}
       />
 
       <main id="main">

@@ -52,6 +52,15 @@ const FALLBACKS: Record<string, string> = {
   not_found_body:
     "The page you were looking for is no longer here. The collections are, though.",
   not_found_button: "Return home",
+
+  // Chrome a visitor can encounter, including what a screen reader reads aloud
+  skip_to_content: "Skip to content",
+  menu_open: "Open menu",
+  menu_close: "Close menu",
+  nav_primary_label: "Primary",
+  try_on_canvas_label: "Virtual try-on preview",
+  form_error_send: "We could not send that just now. Please try again, or email us directly.",
+  form_error_save: "We could not save that just now. Please try again.",
 };
 
 export function makeLabels(settings: SiteSettings | null) {

@@ -16,9 +16,11 @@ const field =
 export function ContactFormSection({
   content,
   productId = null,
+  errorMessage,
 }: {
   content: Json;
   productId?: string | null;
+  errorMessage: string;
 }) {
   const c = obj(content);
   const labels = {
@@ -62,7 +64,7 @@ export function ContactFormSection({
 
     if (insertError) {
       setStatus("error");
-      setError("We could not send that just now. Please try again, or email us directly.");
+      setError(errorMessage);
       return;
     }
     setStatus("done");

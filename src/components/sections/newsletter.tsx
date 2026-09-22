@@ -11,7 +11,13 @@ type Status = "idle" | "sending" | "done" | "error";
  * Newsletter signup. Inserts straight into Supabase under the insert-only
  * anonymous policy — the browser can add a row but can never read the list back.
  */
-export function NewsletterSection({ content }: { content: Json }) {
+export function NewsletterSection({
+  content,
+  errorMessage,
+}: {
+  content: Json;
+  errorMessage: string;
+}) {
   const c = obj(content);
   const eyebrow = text(c.eyebrow);
   const headline = text(c.headline);
@@ -54,7 +60,7 @@ export function NewsletterSection({ content }: { content: Json }) {
         return;
       }
       setStatus("error");
-      setError("We could not save that just now. Please try again.");
+      setError(errorMessage);
       return;
     }
     setStatus("done");

@@ -4,6 +4,7 @@ import { ButtonLink, TextLink } from "@/components/ui/button";
 import { Reveal } from "@/components/ui/reveal";
 import { CollectionCard, LookCard, ProductCard } from "@/components/ui/cards";
 import { link, listItems, media, obj, text, num } from "@/lib/section-content";
+import { sanitizeRichText } from "@/lib/sanitize";
 import type { Json } from "@/lib/types/database";
 import type {
   CollectionRow,
@@ -332,7 +333,12 @@ export function RichTextSection({ content }: { content: Json }) {
     <section className="shell py-24 md:py-32">
       <div className="mx-auto max-w-3xl">
         <SectionHeading eyebrow={text(c.eyebrow)} headline={headline} />
-        {html ? <div className="prose-editorial mt-10" dangerouslySetInnerHTML={{ __html: html }} /> : null}
+        {html ? (
+          <div
+            className="prose-editorial mt-10"
+            dangerouslySetInnerHTML={{ __html: sanitizeRichText(html) }}
+          />
+        ) : null}
       </div>
     </section>
   );

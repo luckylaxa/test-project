@@ -30,6 +30,7 @@ export function CanvasStage({
   onFaceState,
   handleRef,
   className = "",
+  canvasLabel,
 }: {
   source: StageSource | null;
   layers: MakeupLayer[];
@@ -37,6 +38,7 @@ export function CanvasStage({
   onFaceState?: (state: FaceState) => void;
   handleRef?: React.RefObject<StageHandle | null>;
   className?: string;
+  canvasLabel: string;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -251,7 +253,7 @@ export function CanvasStage({
       <canvas
         ref={canvasRef}
         className="h-full w-full bg-canvas-soft object-contain"
-        aria-label="Virtual try-on preview"
+        aria-label={canvasLabel}
       />
     </div>
   );

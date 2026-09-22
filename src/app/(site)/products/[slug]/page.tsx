@@ -8,6 +8,7 @@ import { getProduct, getProductSlugs, getSiteSettings, slugParams } from "@/lib/
 import { gallery } from "@/lib/section-content";
 import { makeLabels } from "@/lib/labels";
 import { buildMetadata, siteUrl } from "@/lib/metadata";
+import { jsonLdScript } from "@/lib/sanitize";
 import { GalleryAndShades } from "./gallery-and-shades";
 
 export async function generateStaticParams() {
@@ -79,7 +80,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
 
       <article className="shell pt-32 pb-24 md:pt-44 md:pb-32">

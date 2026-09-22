@@ -30,6 +30,7 @@ export type StudioLabels = {
   error: string;
   products: string;
   close: string;
+  canvasLabel: string;
 };
 
 /**
@@ -244,6 +245,7 @@ export function Studio({
                 comparing={comparing}
                 onFaceState={setFaceState}
                 handleRef={stageRef}
+                canvasLabel={labels.canvasLabel}
                 className="h-full w-full"
               />
             </div>

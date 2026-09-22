@@ -3,6 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { getJournalPost, getJournalSlugs, getSiteSettings, slugParams } from "@/lib/content";
 import { buildMetadata, siteUrl } from "@/lib/metadata";
+import { jsonLdScript, sanitizeRichText } from "@/lib/sanitize";
 
 export async function generateStaticParams() {
   return slugParams(await getJournalSlugs());
@@ -53,7 +54,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: jsonLdScript(jsonLd) }}
       />
 
       <article className="pt-32 pb-24 md:pt-44 md:pb-32">
@@ -82,7 +83,7 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
           <div className="shell mt-16">
             <div
               className="prose-editorial mx-auto max-w-3xl"
-              dangerouslySetInnerHTML={{ __html: post.body_html }}
+              dangerouslySetInnerHTML={{ __html: sanitizeRichText(post.body_html) }}
             />
           </div>
         ) : null}

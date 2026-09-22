@@ -81,7 +81,7 @@ export async function RenderSection({
       return <PressSection content={content} logos={await getPressLogos()} />;
 
     case "newsletter":
-      return <NewsletterSection content={content} />;
+      return <NewsletterSection content={content} errorMessage={labels.t("form_error_save")} />;
 
     case "rich_text":
       return <RichTextSection content={content} />;
@@ -90,7 +90,7 @@ export async function RenderSection({
       return <ContactDetailsSection content={content} settings={settings} />;
 
     case "contact_form":
-      return <ContactFormSection content={content} />;
+      return <ContactFormSection content={content} errorMessage={labels.t("form_error_send")} />;
 
     default:
       return null;

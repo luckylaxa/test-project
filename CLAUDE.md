@@ -145,13 +145,16 @@ field as optional.
   message_label, button_label, success_message, consent_text
 - `rich_text` — eyebrow, headline, body_html
 
-### Placeholder imagery
+### Imagery
 
-`public/placeholders/*.svg` are stand-ins referenced by URL from the database.
-Uploading a real image in the admin panel replaces the URL with a storage URL —
-no code change is needed. `try_on_models.photo_url` is deliberately null: the face
-detector needs a real portrait, so sample-model mode stays off until real photos
-are uploaded.
+`public/media/*.jpg` are the hero, collection, look and journal images. The look
+and collection covers were produced by rendering each look's own shades onto the
+supplied model portraits with `MakeupRenderer` — a look's cover therefore shows
+the look it links to.
+
+`public/placeholders/*.svg` remain for **product photography only**, which nobody
+has yet. Uploading a real image in the admin panel replaces the URL with a
+storage URL; no code change is needed.
 
 ---
 
@@ -236,3 +239,26 @@ Measured: ~225kB JS per page, and `/try-on` is no heavier than any other page �
 the MediaPipe model and WASM load only once a source is chosen.
 Audited across six pages: one h1 each, no skipped levels, no missing alt, no
 unlabelled controls, visible focus on every tab stop.
+
+---
+
+## Quality sweep (Phase 7)
+
+- **Hardcoded content**: the last visitor-facing strings moved into
+  `site_settings.ui_labels` — the skip link, the menu's open/close labels, the
+  nav landmark name, the try-on canvas label and both form error messages.
+  Screen-reader labels count: they are read aloud.
+- **Rich text is sanitized** (`src/lib/sanitize.ts`) with an allowlist matching
+  what the admin editor can produce. Only admins can write it and an admin
+  already controls the site, so this is defence in depth against a compromised
+  account, not a privilege boundary. Verified against script tags, event
+  handlers, `javascript:` and `data:` URLs, iframes, inline styles and forms.
+- **JSON-LD is escaped** with `jsonLdScript()`. A product name containing
+  `</script>` would otherwise close the tag and the rest would parse as HTML.
+- **A transparent header over a hero needs light type.** `body:has([data-hero-media])`
+  flips it, reverting on scroll. The pale placeholder hid this; a real
+  photograph made the brand name almost invisible.
+
+Verified: camera denial falls back correctly and still offers upload and sample
+models; an uploaded photo produces **zero off-origin requests**; the snapshot
+downloads; RLS blocks a signed-in non-admin from every table.

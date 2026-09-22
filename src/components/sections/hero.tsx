@@ -36,7 +36,12 @@ export function HeroSection({ content, first }: { content: Json; first: boolean 
   }
 
   return (
-    <section className="relative isolate min-h-[88svh] w-full overflow-hidden md:min-h-screen">
+    <section
+      // The header reads this to switch to light type while it is transparent
+      // over the image. Without it, dark type disappears into a dark photograph.
+      data-hero-media="true"
+      className="relative isolate min-h-[88svh] w-full overflow-hidden md:min-h-screen"
+    >
       <div className="absolute inset-0">
         <MediaFrame media={image} className="h-full w-full" sizes="100vw" priority={first} />
       </div>
