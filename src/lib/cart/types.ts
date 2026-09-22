@@ -28,9 +28,16 @@ export function sameLine(a: CartLine, b: CartLine) {
   return a.productId === b.productId && a.shadeId === b.shadeId;
 }
 
-export function formatMoney(minorUnits: number, currency: string, locale = "en-GB") {
+/**
+ * Digit grouping is a property of the currency's home, not of the site.
+ * Rupees are grouped in lakhs — a shopper in India reads 1,50,000, and
+ * 150,000 looks like a typo.
+ */
+const LOCALE_FOR: Record<string, string> = { INR: "en-IN", USD: "en-US", AED: "en-AE" };
+
+export function formatMoney(minorUnits: number, currency: string, locale?: string) {
   try {
-    return new Intl.NumberFormat(locale, {
+    return new Intl.NumberFormat(locale ?? LOCALE_FOR[currency.toUpperCase()] ?? "en-GB", {
       style: "currency",
       currency,
       // Whole numbers look cleaner on a luxury site; keep decimals only when real.

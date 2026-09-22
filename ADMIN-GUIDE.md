@@ -248,9 +248,14 @@ A short list of things that are not content, and that someone will need to do on
 - **Razorpay keys.** The site needs `RAZORPAY_KEY_ID` and `RAZORPAY_KEY_SECRET`
   set on the server. Until then checkout tells customers it is not configured,
   or runs in demonstration mode if that is switched on.
-- **Currency.** Razorpay accounts handle Indian rupees by default; other
-  currencies need international payments enabled on your Razorpay account. The
-  site is set to euro, so check this before opening the shop.
+- **Currency.** The shop is priced in Indian rupees, which is what Razorpay
+  accounts handle by default and what makes Netbanking, wallets and UPI
+  available. Switching to another currency needs international payments enabled
+  on your Razorpay account — and remember that prices are stored as numbers, so
+  changing the currency does not convert them. You would need to re-enter every
+  price.
+- **UPI**, if you want it offered, is switched on in your Razorpay dashboard
+  under payment methods. Cards, Netbanking and wallets are already available.
 - **Email delivery.** Supabase's built-in email sender is rate limited to a handful
   of messages an hour and is not meant for real customers. Connect a proper email
   service in Supabase, or sign-up confirmations will start failing the moment more

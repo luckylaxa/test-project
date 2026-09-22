@@ -67,7 +67,7 @@ export default async function EditProductPage({
         allProducts={allProducts ?? []}
         related={(related ?? []).map((r) => r.related_product_id)}
         modelPhoto={model?.photo_url ?? null}
-        currency={settings?.currency ?? "EUR"}
+        currency={settings?.currency ?? "INR"}
         checkoutEnabled={settings?.checkout_enabled ?? false}
       />
     </>

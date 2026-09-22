@@ -55,7 +55,7 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
     try_on_disclaimer: settings.try_on_disclaimer ?? "",
     camera_permission_title: settings.camera_permission_title ?? "",
     camera_permission_body: settings.camera_permission_body ?? "",
-    currency: settings.currency ?? "EUR",
+    currency: settings.currency ?? "INR",
     checkout_enabled: settings.checkout_enabled ?? false,
     google_login_enabled: settings.google_login_enabled ?? false,
     demo_checkout: settings.demo_checkout ?? false,
@@ -214,10 +214,10 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
           value={v.currency}
           onChange={(x) => set("currency", x)}
           options={[
+            { value: "INR", label: "Indian rupee (INR)" },
             { value: "EUR", label: "Euro (EUR)" },
             { value: "GBP", label: "Pound sterling (GBP)" },
             { value: "USD", label: "US dollar (USD)" },
-            { value: "INR", label: "Indian rupee (INR)" },
             { value: "AED", label: "UAE dirham (AED)" },
           ]}
         />

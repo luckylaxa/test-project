@@ -430,7 +430,15 @@ verification is Node's built-in `crypto`.
 
 ### Currency
 
-Razorpay accounts are enabled for INR by default; anything else needs
-international payments switched on. Order creation succeeds in EUR on this test
-account, but that does not prove a EUR payment will clear. `site_settings.currency`
-is the one place to change it.
+The shop is priced in **INR**. In EUR the widget offered cards only; in INR it
+also offers Netbanking and wallets (UPI needs enabling on the account), which is
+the real reason to stay in rupees with an Indian gateway.
+
+`price_amount` is an integer in the currency's smallest unit, so **changing
+`site_settings.currency` does not convert anything** — flipping EUR to INR would
+have turned a EUR 64 lipstick into INR 64. The seeded catalogue was re-priced
+alongside the switch, at roughly INR 95-97 to the euro, rounded, keeping the
+original ladder. Any future currency change needs the same treatment.
+
+`formatMoney` picks its locale from the currency (`LOCALE_FOR`), because rupees
+group in lakhs: 1,50,000, not 150,000.

@@ -74,7 +74,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       {showCart ? (
         <CartDrawer
           catalogue={catalogue}
-          currency={settings?.currency ?? "EUR"}
+          currency={settings?.currency ?? "INR"}
           labels={{
             title: labels.t("cart_title"),
             empty: labels.t("cart_empty"),
