@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSiteSettings } from "@/lib/content";
+import { makeLabels } from "@/lib/labels";
 
 export type SaveResult = { ok: true } | { ok: false; error: string };
 
@@ -21,16 +23,17 @@ export async function saveCustomer(details: {
   postal_code: string;
   country: string;
 }): Promise<SaveResult> {
-  const supabase = await createClient();
+  const [supabase, settings] = await Promise.all([createClient(), getSiteSettings()]);
+  const labels = makeLabels(settings);
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return { ok: false, error: "Please sign in again." };
+  if (!user) return { ok: false, error: labels.t("account_error_signed_out") };
 
   const country = details.country.trim().toUpperCase();
   if (country && !/^[A-Z]{2}$/.test(country)) {
-    return { ok: false, error: "Please choose a country." };
+    return { ok: false, error: labels.t("account_error_country") };
   }
 
   const { error } = await supabase.from("customers").upsert(
@@ -48,7 +51,9 @@ export async function saveCustomer(details: {
     { onConflict: "user_id" },
   );
 
-  if (error) return { ok: false, error: error.message };
+  // The database's own wording is not the customer's to read, and would not
+  // be editable if it were.
+  if (error) return { ok: false, error: labels.t("form_error_save") };
   return { ok: true };
 }
 

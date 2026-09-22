@@ -345,3 +345,29 @@ checkout fails with a clear message instead of breaking.
   is not for production — sign-up confirmations will fail under real traffic
   until a real email provider is connected. Confirmed by hitting
   `over_email_send_rate_limit` during testing.
+
+## Google sign-in
+
+- `/auth/callback` (`src/app/auth/callback/route.ts`) swaps the provider's
+  one-time `code` for a session. It must run per request (`instant = false`),
+  sanitises `next` to same-site paths only (an open redirect otherwise), and
+  prefers `x-forwarded-host` so the customer lands on the domain their session
+  cookie was set for.
+- **`site_settings.google_login_enabled` gates the button** (migration
+  `velmora_google_login_toggle`, default `false`). Supabase answers an
+  unconfigured provider with a raw JSON error page that has no way back, so the
+  button must not exist until the provider is actually on. Order: Google Cloud
+  OAuth client → Supabase provider + redirect allow list → this toggle.
+- A Google customer arrives with no `customers` row, so the checkout gate sends
+  them to `/account?reason=address`. The name is prefilled from
+  `user_metadata.full_name`/`name`; the email always comes from the session.
+- `saveCustomer` no longer returns the database's own error text — it returns
+  `form_error_save`, which is editable.
+
+### Cache gotcha when changing settings outside the admin
+
+`getSiteSettings()` is `use cache` + `cacheTag(tags.settings)` + `cacheLife("days")`.
+Only a save through `withAdmin()` calls `updateTag`, so a row changed by raw SQL
+keeps serving the old object — including, after a migration, one missing the new
+column entirely (a `?? false` then silently wins). Change settings through
+`/admin`, or rebuild, rather than assuming the page is broken.

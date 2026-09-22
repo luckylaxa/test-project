@@ -204,6 +204,10 @@ The order of events:
 3. Once signed in, if they have no delivery address, they are asked for one.
 4. Then they go to **Stripe** to pay.
 
+They can register with an email and password, or with Google if you have turned
+**Let customers sign in with Google** on in site settings. See section 10 for the
+one-time setup that toggle depends on.
+
 Card details never touch this site. Stripe collects them, which keeps you out of
 the rules that apply to handling card numbers yourself.
 
@@ -224,7 +228,19 @@ A short list of things that are not content, and that someone will need to do on
 - **Email delivery.** Supabase's built-in email sender is rate limited to a handful
   of messages an hour and is not meant for real customers. Connect a proper email
   service in Supabase, or sign-up confirmations will start failing the moment more
-  than a couple of people register at once.
+  than a couple of people register at once. Google sign-in sidesteps this, because
+  Google has already confirmed the address — but people who prefer email and
+  password still need it working.
+- **Google sign-in**, if you want it. Three steps, in order:
+  1. In the Google Cloud console, create an OAuth client (type: web application)
+     and add `https://pezhyriabwmintczrkdd.supabase.co/auth/v1/callback` as an
+     authorised redirect URI. Copy the client ID and secret.
+  2. In Supabase → Authentication → Providers → Google, switch it on and paste
+     those two values. Then, under URL Configuration, add your live site address
+     to the redirect allow list.
+  3. Only then turn **Let customers sign in with Google** on in site settings.
+     Doing this before step 2 sends customers to a Google error page with no way
+     back, which is exactly why the toggle exists.
 - **Policy pages.** There are no shipping, returns, refund or privacy pages yet,
   and no tax or delivery charges are calculated. Most places require some of this
   before you can sell. Worth a conversation with someone who knows your

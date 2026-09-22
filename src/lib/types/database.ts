@@ -588,6 +588,7 @@ export type Database = {
           favicon_url: string | null
           footer_columns: Json
           footer_text: string | null
+          google_login_enabled: boolean
           id: number
           legal_links: Json
           logo_alt: string | null
@@ -616,6 +617,7 @@ export type Database = {
           favicon_url?: string | null
           footer_columns?: Json
           footer_text?: string | null
+          google_login_enabled?: boolean
           id?: number
           legal_links?: Json
           logo_alt?: string | null
@@ -644,6 +646,7 @@ export type Database = {
           favicon_url?: string | null
           footer_columns?: Json
           footer_text?: string | null
+          google_login_enabled?: boolean
           id?: number
           legal_links?: Json
           logo_alt?: string | null

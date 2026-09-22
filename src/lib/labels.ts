@@ -117,6 +117,11 @@ export const LABEL_FALLBACKS: Record<string, string> = {
     "Too many attempts just now. Please wait a few minutes and try again.",
   account_error_network: "We could not reach the server. Check your connection and try again.",
   account_error_generic: "We could not do that just now. Please try again.",
+  account_google: "Continue with Google",
+  account_or: "or",
+  account_error_oauth: "That sign-in did not complete. Please try again.",
+  account_error_signed_out: "Please sign in again.",
+  account_error_country: "Please choose a country.",
 
   // Delivery address form
   account_field_full_name: "Full name",

@@ -62,9 +62,12 @@ function Field({
 
 export function AccountForm({
   customer,
+  suggestedName,
   labels,
 }: {
   customer: Tables<"customers"> | null;
+  /** From the identity provider, for a customer who has not saved a name yet. */
+  suggestedName?: string | null;
   labels: {
     title: string;
     help: string;
@@ -81,7 +84,7 @@ export function AccountForm({
   };
 }) {
   const [form, setForm] = useState({
-    full_name: customer?.full_name ?? "",
+    full_name: customer?.full_name ?? suggestedName ?? "",
     phone: customer?.phone ?? "",
     address_line1: customer?.address_line1 ?? "",
     address_line2: customer?.address_line2 ?? "",

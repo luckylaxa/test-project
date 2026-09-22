@@ -50,6 +50,7 @@ export default async function AccountPage({
         <div className="w-full max-w-sm">
           <Suspense fallback={null}>
             <AuthForm
+              googleEnabled={settings?.google_login_enabled ?? false}
               labels={{
                 signInTitle: labels.t("account_signin_title"),
                 signUpTitle: labels.t("account_signup_title"),
@@ -58,6 +59,8 @@ export default async function AccountPage({
                 toSignUp: labels.t("account_switch_to_signup"),
                 toSignIn: labels.t("account_switch_to_signin"),
                 checkEmail: labels.t("account_check_email"),
+                google: labels.t("account_google"),
+                or: labels.t("account_or"),
                 email: labels.t("account_email"),
                 password: labels.t("account_password"),
                 passwordHelp: labels.t("account_password_help"),
@@ -70,6 +73,7 @@ export default async function AccountPage({
                   rateLimited: labels.t("account_error_rate_limited"),
                   network: labels.t("account_error_network"),
                   generic: labels.t("account_error_generic"),
+                  oauth: labels.t("account_error_oauth"),
                 },
               }}
             />
@@ -110,6 +114,13 @@ export default async function AccountPage({
 
       <AccountForm
         customer={customer}
+        suggestedName={
+          typeof user.user_metadata?.full_name === "string"
+            ? user.user_metadata.full_name
+            : typeof user.user_metadata?.name === "string"
+              ? user.user_metadata.name
+              : null
+        }
         labels={{
           title: labels.t("account_delivery_title"),
           help: labels.t("account_delivery_help"),
