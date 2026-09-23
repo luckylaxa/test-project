@@ -827,3 +827,54 @@ all short of typing the URL. The menu carries them now.
 
 Verified after all of it: twelve routes at 375, 414, 768, 1280 and 1600 — no
 horizontal overflow, no JS errors — and every new card control measures 44px.
+
+## The phone try-on is an overlay, not a panel
+
+Reported from a real iPhone: the camera sat in a letterboxed strip with a
+screenful of dead ivory beneath it, and "Products & shades" was pinned to
+`bottom: 0` — which on iOS Safari is *behind* the browser's own toolbar. The
+only way into the shades and the basket was invisible.
+
+Two separate faults:
+
+- The studio had no height on mobile at all. It was a tall scrolling page whose
+  stage was `min-h-[58svh]`. It is now `h-[calc(100dvh-5rem)]`, a flex column —
+  `dvh`, not `svh`, because that is the unit that accounts for Safari's toolbar.
+- The controls now **float over the stage** (`MobileControls`), not in a panel
+  below or over it. Every panel we tried covered the mouth, which is the part a
+  lipstick goes on. The attempts are worth recording because each looked right
+  before it was measured:
+  - a 78svh sheet left only the forehead;
+  - 62svh still cut the lips off;
+  - a `34dvh` cap on the stage was arithmetic, and wrong — the sheet's real top
+    was 46px higher;
+  - putting the sheet in the flex column squeezed the face to 127px **and** made
+    the panel's inner scrollers overlap, because they need a definite parent
+    height.
+  Over the stage there is nothing to guess: the face keeps the whole screen and
+  the controls take a strip of it.
+
+The stage is `bg-ink lg:bg-canvas-soft`. The letterbox bars were ivory, so the
+pale chips floating over them could not be read.
+
+## Dead ends, found by counting
+
+Every route was loaded and its main content checked for a single visible link
+or button. Three had none at all:
+
+| Route | Was | Now |
+|---|---|---|
+| `/journal/<slug>` | 0 actions — the article simply stopped | back to the journal, previous and next |
+| `/shipping` | 0 actions | the other policies, from `legal_links` |
+| `/privacy` | 0 actions | same |
+
+An **empty basket was the worst of them**: the drawer hides its whole footer
+when there is nothing in it, so the only control on the panel was Close. It now
+offers the collections, the try-on and saved items.
+
+## The account page is tabbed
+
+Details, saved items and orders were one column. With a hundred saved items you
+had to scroll past every one to reach your orders — the thing people open an
+account page for. `AccountTabs` splits them, `?tab=` deep-links a section, and
+every panel stays mounted so switching refetches nothing.

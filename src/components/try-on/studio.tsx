@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { CanvasStage, type FaceState, type StageHandle, type StageSource } from "./canvas-stage";
 import { PermissionScreen, SourceSwitcher, type SourceMode } from "./source-panel";
 import { ProductPanel, WearingNow, type Applied } from "./product-panel";
+import { MobileControls } from "./mobile-controls";
 import type { LookWithItems, ProductWithShades, ShadeRow, TryOnModelRow } from "@/lib/content";
 import type { Category, MakeupLayer } from "@/lib/try-on/makeup-renderer";
 
@@ -74,7 +75,6 @@ export function Studio({
     initial.category ?? categories[0]?.value ?? "lips",
   );
   const [comparing, setComparing] = useState(false);
-  const [sheetOpen, setSheetOpen] = useState(false);
 
   const streamRef = useRef<MediaStream | null>(null);
   const objectUrlRef = useRef<string | null>(null);
@@ -160,7 +160,6 @@ export function Studio({
         intensity: Number(item.intensity ?? item.shade.default_intensity),
       })),
     );
-    setSheetOpen(false);
   }, []);
 
   const layers: MakeupLayer[] = useMemo(
@@ -245,11 +244,14 @@ export function Studio({
   );
 
   return (
-    // The studio fills the viewport below the header; the offset matches the
-    // page's top padding so the controls never fall below the fold.
-    <div className="lg:grid lg:h-[calc(100dvh-6rem)] lg:grid-cols-[1fr_24rem]">
+    // A full-screen surface on a phone too. It used to be a tall scrolling page
+    // whose stage was `min-h-[58svh]`, which left the camera in a letterboxed
+    // strip with a screenful of dead ivory under it — and pushed the only way
+    // into the shades to the very bottom, where iOS Safari's own toolbar covers
+    // it. `dvh` is the unit that accounts for that toolbar.
+    <div className="flex h-[calc(100dvh-5rem)] flex-col overflow-hidden lg:grid lg:h-[calc(100dvh-6rem)] lg:grid-cols-[1fr_24rem] lg:overflow-visible">
       {/* Stage */}
-      <div className="relative flex min-h-[58svh] flex-col bg-canvas-soft pb-14 lg:min-h-0 lg:pb-0">
+      <div className="relative flex min-h-0 flex-1 flex-col bg-ink lg:bg-canvas-soft">
         <div className="relative min-h-0 flex-1">
           {hasSource ? (
             <div className="absolute inset-0">
@@ -279,6 +281,67 @@ export function Studio({
             />
           )}
 
+          {/* Phone controls float over the foot of the stage. Every panel we
+              tried under it covered the mouth. */}
+          {hasSource ? (
+            <>
+              <div className="pointer-events-none absolute inset-x-0 top-0 z-20 bg-gradient-to-b from-ink/60 to-transparent px-[var(--gutter)] pt-3 pb-8 lg:hidden">
+                <div className="pointer-events-auto flex items-center justify-between gap-2 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                  <SourceSwitcher
+                    mode={mode}
+                    models={models}
+                    tone="over"
+                    labels={{ camera: labels.startCamera, upload: labels.upload, models: labels.models }}
+                    onStartCamera={startCamera}
+                    onUpload={pickUpload}
+                    onPickModel={pickModel}
+                  />
+                  <span className="flex shrink-0 items-center gap-2">
+                    <button
+                      type="button"
+                      onPointerDown={() => setComparing(true)}
+                      onPointerUp={() => setComparing(false)}
+                      onPointerLeave={() => setComparing(false)}
+                      disabled={applied.length === 0}
+                      className="rounded-full bg-canvas/20 px-3.5 py-2 text-[0.5625rem] tracking-[0.16em] whitespace-nowrap text-canvas uppercase disabled:opacity-40"
+                    >
+                      {labels.compare}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={takeSnapshot}
+                      className="rounded-full bg-canvas/20 px-3.5 py-2 text-[0.5625rem] tracking-[0.16em] whitespace-nowrap text-canvas uppercase"
+                    >
+                      {labels.snapshot}
+                    </button>
+                  </span>
+                </div>
+              </div>
+
+              <MobileControls
+                categories={categories}
+                activeCategory={activeCategory}
+                onCategory={setActiveCategory}
+                products={visibleProducts}
+                looks={looks}
+                applied={applied}
+                onToggleShade={applyShade}
+                onApplyLook={applyLook}
+                onClear={() => setApplied([])}
+                labels={{
+                  looks: labels.looks,
+                  addToBasket: labels.addToBasket,
+                  addAll: labels.addAll,
+                  viewProduct: labels.viewProduct,
+                  clear: labels.clear,
+                  save: labels.save,
+                  saved: labels.saved,
+                  empty: labels.empty,
+                }}
+              />
+            </>
+          ) : null}
+
           {hasSource && statusText ? (
             <p
               role="status"
@@ -290,7 +353,7 @@ export function Studio({
         </div>
 
         {hasSource ? (
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line bg-canvas px-[var(--gutter)] py-3 lg:flex-nowrap lg:gap-6">
+          <div className="hidden flex-wrap items-center justify-between gap-3 border-t border-line bg-canvas px-[var(--gutter)] py-3 lg:flex lg:flex-nowrap lg:gap-6">
             <SourceSwitcher
               mode={mode}
               models={models}
@@ -336,50 +399,7 @@ export function Studio({
         ) : null}
       </aside>
 
-      {/* Mobile bottom sheet */}
-      <div className="lg:hidden">
-        <button
-          type="button"
-          onClick={() => setSheetOpen(true)}
-          className="fixed inset-x-0 bottom-0 z-30 border-t border-line bg-canvas px-[var(--gutter)] py-4 text-[0.6875rem] tracking-[0.2em] uppercase"
-        >
-          {labels.products}
-          {applied.length > 0 ? <span className="text-ink-muted"> · {applied.length}</span> : null}
-        </button>
 
-        {sheetOpen ? (
-          <div className="fixed inset-0 z-40 flex flex-col justify-end">
-            <button
-              type="button"
-              aria-label={labels.close}
-              onClick={() => setSheetOpen(false)}
-              className="absolute inset-0 bg-ink/35"
-            />
-            {/* 78svh left only the forehead showing on a 375px screen, which is
-                the wrong half of the face when the thing being tried on is a
-                lipstick. 62svh keeps the mouth above the sheet; the panel
-                scrolls, so nothing is lost. */}
-            <div className="relative flex max-h-[62svh] flex-col bg-canvas px-[var(--gutter)] pt-4 pb-6">
-              <div className="mb-3 flex items-center justify-between">
-                <span aria-hidden className="mx-auto h-1 w-10 rounded-full bg-line" />
-                <button
-                  type="button"
-                  onClick={() => setSheetOpen(false)}
-                  className="absolute right-[var(--gutter)] text-[0.625rem] tracking-[0.16em] text-ink-muted uppercase"
-                >
-                  {labels.close}
-                </button>
-              </div>
-              <div className="flex min-h-0 flex-1 flex-col">{panel}</div>
-              {labels.disclaimer ? (
-                <p className="mt-4 border-t border-line pt-3 text-[0.6875rem] text-ink-muted">
-                  {labels.disclaimer}
-                </p>
-              ) : null}
-            </div>
-          </div>
-        ) : null}
-      </div>
     </div>
   );
 }

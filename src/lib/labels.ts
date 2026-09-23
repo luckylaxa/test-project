@@ -67,6 +67,9 @@ export const LABEL_FALLBACKS: Record<string, string> = {
   cart_title: "Your basket",
   cart_button: "Basket",
   cart_empty: "Your basket is empty.",
+  cart_empty_shop: "Browse the collections",
+  cart_empty_try_on: "Try shades on your face",
+  cart_empty_saved: "Your saved items",
   cart_subtotal: "Subtotal",
   cart_checkout: "Go to checkout",
   cart_continue: "Continue shopping",
@@ -107,6 +110,13 @@ export const LABEL_FALLBACKS: Record<string, string> = {
 
   // Customer accounts
   account_title: "Your account",
+  journal_back: "All journal entries",
+  journal_next: "Next",
+  journal_previous: "Previous",
+  policy_more: "Other policies",
+  account_tab_details: "Details",
+  account_tab_saved: "Saved",
+  account_tab_orders: "Orders",
   account_signin_title: "Sign in",
   account_signup_title: "Create an account",
   account_signin_cta: "Sign in",

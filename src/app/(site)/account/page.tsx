@@ -8,6 +8,7 @@ import { AuthForm } from "./auth-form";
 import { AccountForm } from "./account-form";
 import { Orders } from "./orders";
 import { Saved, type SavedItem } from "./saved";
+import { AccountTabs } from "./tabs";
 import { gallery } from "@/lib/section-content";
 import { listOrders } from "@/lib/orders";
 import { isGoogleEnabled } from "@/lib/auth-providers";
@@ -20,7 +21,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const settings = await getSiteSettings();
   const labels = makeLabels(settings);
   return {
-    ...(await buildMetadata({ title: labels.t("account_title"), path: "/account" })),
+    ...(await buildMetadata({
+      title: labels.t("account_title"),
+      path: "/account",
+    })),
     // A personal page should never be indexed.
     robots: { index: false, follow: false },
   };
@@ -29,16 +33,17 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AccountPage({
   searchParams,
 }: {
-  searchParams: Promise<{ reason?: string; next?: string }>;
+  searchParams: Promise<{ reason?: string; next?: string; tab?: string }>;
 }) {
-  const [{ reason, next }, settings, supabase, googleEnabled] = await Promise.all([
-    searchParams,
-    getSiteSettings(),
-    createClient(),
-    // Asked of the auth server, not of a setting, so the button cannot be
-    // missing because somebody forgot a toggle.
-    isGoogleEnabled(),
-  ]);
+  const [{ reason, next, tab }, settings, supabase, googleEnabled] =
+    await Promise.all([
+      searchParams,
+      getSiteSettings(),
+      createClient(),
+      // Asked of the auth server, not of a setting, so the button cannot be
+      // missing because somebody forgot a toggle.
+      isGoogleEnabled(),
+    ]);
   const labels = makeLabels(settings);
 
   const {
@@ -101,10 +106,14 @@ export default async function AccountPage({
   // Scoped to this customer, so one person's orders can never reach another.
   const [{ data: customer }, orders, { data: savedRows }] = await Promise.all([
     supabase.from("customers").select("*").eq("user_id", user.id).maybeSingle(),
-    paymentsConfigured ? listOrders({ userId: user.id }) : Promise.resolve(null),
+    paymentsConfigured
+      ? listOrders({ userId: user.id })
+      : Promise.resolve(null),
     supabase
       .from("wishlist")
-      .select("product_id, created_at, products(id, name, slug, price_amount, gallery, is_visible)")
+      .select(
+        "product_id, created_at, products(id, name, slug, price_amount, gallery, is_visible)",
+      )
       .eq("user_id", user.id)
       .order("created_at", { ascending: false }),
   ]);
@@ -149,64 +158,102 @@ export default async function AccountPage({
         </p>
       ) : null}
 
-      <AccountForm
-        customer={customer}
-        returnTo={next && next.startsWith("/") && !next.startsWith("//") ? next : null}
-        suggestedName={
-          typeof user.user_metadata?.full_name === "string"
-            ? user.user_metadata.full_name
-            : typeof user.user_metadata?.name === "string"
-              ? user.user_metadata.name
-              : null
-        }
-        labels={{
-          title: labels.t("account_delivery_title"),
-          help: labels.t("account_delivery_help"),
-          saved: labels.t("account_saved"),
-          save: labels.t("account_save"),
-          fullName: labels.t("account_field_full_name"),
-          phone: labels.t("account_field_phone"),
-          address1: labels.t("account_field_address1"),
-          address2: labels.t("account_field_address2"),
-          city: labels.t("account_field_city"),
-          postcode: labels.t("account_field_postcode"),
-          country: labels.t("account_field_country"),
-          countryEmpty: labels.t("account_field_country_empty"),
-        }}
+      {/* Tabs, not one column: a customer with a hundred saved items had to
+          scroll past every one of them to reach their orders. `?tab=` lets
+          anything link straight to a section. */}
+      <AccountTabs
+        initial={tab}
+        panels={[
+          {
+            id: "details",
+            label: labels.t("account_tab_details"),
+            content: (
+              <div className="pt-2">
+                <AccountForm
+                  customer={customer}
+                  returnTo={
+                    next && next.startsWith("/") && !next.startsWith("//")
+                      ? next
+                      : null
+                  }
+                  suggestedName={
+                    typeof user.user_metadata?.full_name === "string"
+                      ? user.user_metadata.full_name
+                      : typeof user.user_metadata?.name === "string"
+                        ? user.user_metadata.name
+                        : null
+                  }
+                  labels={{
+                    title: labels.t("account_delivery_title"),
+                    help: labels.t("account_delivery_help"),
+                    saved: labels.t("account_saved"),
+                    save: labels.t("account_save"),
+                    fullName: labels.t("account_field_full_name"),
+                    phone: labels.t("account_field_phone"),
+                    address1: labels.t("account_field_address1"),
+                    address2: labels.t("account_field_address2"),
+                    city: labels.t("account_field_city"),
+                    postcode: labels.t("account_field_postcode"),
+                    country: labels.t("account_field_country"),
+                    countryEmpty: labels.t("account_field_country_empty"),
+                  }}
+                />
+              </div>
+            ),
+          },
+          {
+            id: "saved",
+            label: labels.t("account_tab_saved"),
+            count: saved.length,
+            content: (
+              <div className="pt-2">
+                <Saved
+                  items={saved}
+                  currency={settings?.currency ?? "INR"}
+                  labels={{
+                    title: labels.t("wishlist_title"),
+                    empty: labels.t("wishlist_empty"),
+                  }}
+                />
+              </div>
+            ),
+          },
+          {
+            id: "orders",
+            label: labels.t("account_tab_orders"),
+            content: paymentsConfigured ? (
+              <div className="pt-2">
+                <Orders
+                  orders={orders}
+                  labels={{
+                    title: labels.t("account_orders_title"),
+                    empty: labels.t("account_orders_empty"),
+                    unavailable: labels.t("account_orders_unavailable"),
+                    paid: labels.t("account_order_paid"),
+                    refunded: labels.t("account_order_refunded"),
+                    trackingTitle: labels.t("order_tracking_title"),
+                    courier: labels.t("order_tracking_courier"),
+                    trackingNumber: labels.t("order_tracking_number"),
+                    trackingLink: labels.t("order_tracking_link"),
+                    refundNote: labels.t("order_refund_note"),
+                    refundPartial: labels.t("order_refund_partial"),
+                    step: {
+                      placed: labels.t("order_status_placed"),
+                      packed: labels.t("order_status_packed"),
+                      shipped: labels.t("order_status_shipped"),
+                      out_for_delivery: labels.t(
+                        "order_status_out_for_delivery",
+                      ),
+                      delivered: labels.t("order_status_delivered"),
+                      cancelled: labels.t("order_status_cancelled"),
+                    },
+                  }}
+                />
+              </div>
+            ) : null,
+          },
+        ]}
       />
-
-      <Saved
-        items={saved}
-        currency={settings?.currency ?? "INR"}
-        labels={{ title: labels.t("wishlist_title"), empty: labels.t("wishlist_empty") }}
-      />
-
-      {paymentsConfigured ? (
-        <Orders
-          orders={orders}
-          labels={{
-            title: labels.t("account_orders_title"),
-            empty: labels.t("account_orders_empty"),
-            unavailable: labels.t("account_orders_unavailable"),
-            paid: labels.t("account_order_paid"),
-            refunded: labels.t("account_order_refunded"),
-            trackingTitle: labels.t("order_tracking_title"),
-            courier: labels.t("order_tracking_courier"),
-            trackingNumber: labels.t("order_tracking_number"),
-            trackingLink: labels.t("order_tracking_link"),
-            refundNote: labels.t("order_refund_note"),
-            refundPartial: labels.t("order_refund_partial"),
-            step: {
-              placed: labels.t("order_status_placed"),
-              packed: labels.t("order_status_packed"),
-              shipped: labels.t("order_status_shipped"),
-              out_for_delivery: labels.t("order_status_out_for_delivery"),
-              delivered: labels.t("order_status_delivered"),
-              cancelled: labels.t("order_status_cancelled"),
-            },
-          }}
-        />
-      ) : null}
     </section>
   );
 }

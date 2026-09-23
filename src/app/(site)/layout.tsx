@@ -95,6 +95,9 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           labels={{
             title: labels.t("cart_title"),
             empty: labels.t("cart_empty"),
+            emptyShop: labels.t("cart_empty_shop"),
+            emptyTryOn: labels.t("cart_empty_try_on"),
+            emptySaved: labels.t("cart_empty_saved"),
             subtotal: labels.t("cart_subtotal"),
             checkout: labels.t("cart_checkout"),
             continue: labels.t("cart_continue"),

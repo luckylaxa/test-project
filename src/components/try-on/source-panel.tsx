@@ -112,6 +112,7 @@ export function SourceSwitcher({
   onStartCamera,
   onUpload,
   onPickModel,
+  tone = "panel",
 }: {
   mode: SourceMode | null;
   models: TryOnModelRow[];
@@ -119,14 +120,20 @@ export function SourceSwitcher({
   onStartCamera: () => void;
   onUpload: (file: File) => void;
   onPickModel: (model: TryOnModelRow) => void;
+  /** "over" sits on top of a photograph, where ink on ivory would not read. */
+  tone?: "panel" | "over";
 }) {
-  const chip =
-    "px-4 py-2 text-[0.625rem] tracking-[0.16em] uppercase transition-colors duration-300 border";
-  const active = "border-ink bg-ink text-canvas";
-  const idle = "border-ink/20 text-ink-muted hover:border-ink hover:text-ink";
+  const over = tone === "over";
+  const chip = over
+    ? "rounded-full px-3.5 py-2 text-[0.5625rem] tracking-[0.16em] uppercase whitespace-nowrap transition-colors duration-300"
+    : "px-4 py-2 text-[0.625rem] tracking-[0.16em] uppercase transition-colors duration-300 border";
+  const active = over ? "bg-canvas text-ink" : "border-ink bg-ink text-canvas";
+  const idle = over
+    ? "bg-canvas/20 text-canvas"
+    : "border-ink/20 text-ink-muted hover:border-ink hover:text-ink";
 
   return (
-    <div className="flex flex-wrap items-center gap-2 lg:flex-nowrap">
+    <div className={over ? "flex items-center gap-2" : "flex flex-wrap items-center gap-2 lg:flex-nowrap"}>
       <button
         type="button"
         onClick={onStartCamera}
@@ -158,7 +165,7 @@ export function SourceSwitcher({
               type="button"
               onClick={() => onPickModel(model)}
               aria-label={model.name}
-              className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-1 ring-ink/15 transition-all duration-300 hover:ring-accent"
+              className={`relative h-8 w-8 shrink-0 overflow-hidden rounded-full transition-all duration-300 ${over ? "ring-1 ring-canvas/50" : "ring-1 ring-ink/15 hover:ring-accent"}`}
             >
               {model.photo_url ? (
                 <Image

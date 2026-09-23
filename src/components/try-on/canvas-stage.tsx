@@ -252,7 +252,9 @@ export function CanvasStage({
       <video ref={videoRef} className="hidden" playsInline muted />
       <canvas
         ref={canvasRef}
-        className="h-full w-full bg-canvas-soft object-contain"
+        // Transparent so the stage decides the letterbox colour: dark on a
+        // phone, where the controls float over it, ivory on desktop.
+        className="h-full w-full bg-transparent object-contain"
         aria-label={canvasLabel}
       />
     </div>

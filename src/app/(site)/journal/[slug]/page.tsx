@@ -1,7 +1,15 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { getJournalPost, getJournalSlugs, getSiteSettings, slugParams } from "@/lib/content";
+import Link from "next/link";
+import {
+  getJournalPost,
+  getJournalPosts,
+  getJournalSlugs,
+  getSiteSettings,
+  slugParams,
+} from "@/lib/content";
+import { makeLabels } from "@/lib/labels";
 import { buildMetadata, siteUrl } from "@/lib/metadata";
 import { jsonLdScript, sanitizeRichText } from "@/lib/sanitize";
 
@@ -26,8 +34,20 @@ export async function generateMetadata({
 
 export default async function JournalPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const [post, settings] = await Promise.all([getJournalPost(slug), getSiteSettings()]);
+  const [post, settings, all] = await Promise.all([
+    getJournalPost(slug),
+    getSiteSettings(),
+    getJournalPosts(),
+  ]);
   if (!post) notFound();
+
+  const labels = makeLabels(settings);
+  // An article used to simply stop: no way back to the journal, nothing to
+  // read next, nothing to buy. Measured as the one route on the site with zero
+  // onward actions in its main content.
+  const index = all.findIndex((p) => p.slug === post.slug);
+  const previous = index > 0 ? all[index - 1] : null;
+  const next = index >= 0 && index < all.length - 1 ? all[index + 1] : null;
 
   const published = post.published_at
     ? new Date(post.published_at).toLocaleDateString("en-GB", {
@@ -87,6 +107,34 @@ export default async function JournalPostPage({ params }: { params: Promise<{ sl
             />
           </div>
         ) : null}
+
+        <nav aria-label={labels.t("journal_back")} className="shell mt-20 border-t border-line pt-8">
+          <Link href="/journal" className="tap text-[0.6875rem] tracking-[0.18em] uppercase hover:text-accent-text">
+            {labels.t("journal_back")}
+          </Link>
+          {previous || next ? (
+            <div className="mt-6 grid gap-6 sm:grid-cols-2">
+              {previous ? (
+                <Link href={`/journal/${previous.slug}`} className="group block">
+                  <span className="eyebrow">{labels.t("journal_previous")}</span>
+                  <span className="mt-2 block font-[family-name:var(--font-display)] text-xl group-hover:text-accent-text">
+                    {previous.title}
+                  </span>
+                </Link>
+              ) : (
+                <span />
+              )}
+              {next ? (
+                <Link href={`/journal/${next.slug}`} className="group block sm:text-right">
+                  <span className="eyebrow">{labels.t("journal_next")}</span>
+                  <span className="mt-2 block font-[family-name:var(--font-display)] text-xl group-hover:text-accent-text">
+                    {next.title}
+                  </span>
+                </Link>
+              ) : null}
+            </div>
+          ) : null}
+        </nav>
       </article>
     </>
   );

@@ -12,6 +12,9 @@ import { formatMoney, type CartLineView } from "@/lib/cart/types";
 export type CartLabels = {
   title: string;
   empty: string;
+  emptyShop: string;
+  emptyTryOn: string;
+  emptySaved: string;
   subtotal: string;
   checkout: string;
   continue: string;
@@ -56,7 +59,8 @@ export function CartDrawer({
     };
   }, [open, setOpen]);
 
-  const key = (productId: string, shadeId: string | null) => `${productId}:${shadeId ?? ""}`;
+  const key = (productId: string, shadeId: string | null) =>
+    `${productId}:${shadeId ?? ""}`;
 
   const resolved = lines.map((line) => ({
     line,
@@ -64,7 +68,8 @@ export function CartDrawer({
   }));
 
   const subtotal = resolved.reduce(
-    (sum, r) => sum + (r.view?.available ? r.view.unitAmount * r.line.quantity : 0),
+    (sum, r) =>
+      sum + (r.view?.available ? r.view.unitAmount * r.line.quantity : 0),
     0,
   );
   const hasUnavailable = resolved.some((r) => !r.view?.available);
@@ -149,7 +154,9 @@ export function CartDrawer({
         className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-canvas shadow-xl"
       >
         <header className="flex items-center justify-between border-b border-line px-6 py-5">
-          <h2 className="font-[family-name:var(--font-display)] text-xl">{labels.title}</h2>
+          <h2 className="font-[family-name:var(--font-display)] text-xl">
+            {labels.title}
+          </h2>
           <button
             type="button"
             onClick={() => setOpen(false)}
@@ -160,13 +167,42 @@ export function CartDrawer({
         </header>
 
         {resolved.length === 0 ? (
-          <div className="flex flex-1 items-center justify-center px-6 text-center">
+          /* An empty basket used to be a dead end: the footer is hidden when
+             there is nothing in it, so the only control on the whole panel was
+             Close. Somewhere to go next is the point of an empty state. */
+          <div className="flex flex-1 flex-col items-center justify-center gap-5 px-6 text-center">
             <p className="text-sm text-ink-muted">{labels.empty}</p>
+            <div className="flex w-full max-w-xs flex-col gap-3">
+              <Link
+                href="/collections"
+                onClick={() => setOpen(false)}
+                className="tap justify-center bg-ink px-6 text-[0.6875rem] tracking-[0.2em] text-canvas uppercase transition-colors duration-500 hover:bg-accent hover:text-ink"
+              >
+                {labels.emptyShop}
+              </Link>
+              <Link
+                href="/try-on"
+                onClick={() => setOpen(false)}
+                className="tap justify-center border border-line-strong px-6 text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-300 hover:border-ink"
+              >
+                {labels.emptyTryOn}
+              </Link>
+              <Link
+                href="/account"
+                onClick={() => setOpen(false)}
+                className="tap justify-center text-[0.625rem] tracking-[0.16em] text-ink-muted uppercase transition-colors hover:text-ink"
+              >
+                {labels.emptySaved}
+              </Link>
+            </div>
           </div>
         ) : (
           <ul className="min-h-0 flex-1 divide-y divide-line-soft overflow-y-auto px-6">
             {resolved.map(({ line, view }) => (
-              <li key={key(line.productId, line.shadeId)} className="flex gap-4 py-5">
+              <li
+                key={key(line.productId, line.shadeId)}
+                className="flex gap-4 py-5"
+              >
                 <span className="relative h-20 w-16 shrink-0 overflow-hidden bg-canvas-soft">
                   {view?.image ? (
                     <Image
@@ -190,7 +226,9 @@ export function CartDrawer({
                       {view.productName}
                     </Link>
                   ) : (
-                    <p className="truncate text-sm text-ink-muted">{labels.unavailable}</p>
+                    <p className="truncate text-sm text-ink-muted">
+                      {labels.unavailable}
+                    </p>
                   )}
 
                   {view?.shadeName ? (
@@ -216,7 +254,9 @@ export function CartDrawer({
                       >
                         −
                       </button>
-                      <span className="min-w-6 text-center text-xs tabular-nums">{line.quantity}</span>
+                      <span className="min-w-6 text-center text-xs tabular-nums">
+                        {line.quantity}
+                      </span>
                       <button
                         type="button"
                         aria-label="Increase quantity"
@@ -279,7 +319,9 @@ export function CartDrawer({
               {labels.continue}
             </button>
 
-            {labels.note ? <p className="mt-4 text-xs text-ink-muted">{labels.note}</p> : null}
+            {labels.note ? (
+              <p className="mt-4 text-xs text-ink-muted">{labels.note}</p>
+            ) : null}
           </footer>
         ) : null}
       </aside>
