@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { getCollection, getCollections, getSiteSettings, slugParams } from "@/lib/content";
 import { makeLabels } from "@/lib/labels";
 import { buildMetadata } from "@/lib/metadata";
-import { ProductFilters } from "./filters";
+import { Suspense } from "react";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
+import { ProductBrowser } from "@/components/shop/product-browser";
 
 export async function generateStaticParams() {
   const collections = await getCollections();
@@ -75,18 +77,42 @@ export default async function CollectionPage({ params }: { params: Promise<{ slu
       )}
 
       <section className="shell py-16 md:py-24">
-        {products.length > 0 ? (
-          <ProductFilters
-            products={products}
-            categoryOptions={categoryOptions}
-            finishOptions={finishOptions}
-            labels={{
-              all: labels.t("filter_all"),
-              category: labels.t("filter_category"),
-              finish: labels.t("filter_finish"),
-              empty: labels.t("no_results"),
-            }}
+        <div className="mb-10">
+          <Breadcrumbs
+            trail={[
+              { label: labels.t("breadcrumb_home"), href: "/" },
+              { label: labels.t("shop_all"), href: "/products" },
+              { label: collection.name, href: `/collections/${collection.slug}` },
+            ]}
           />
+        </div>
+        {products.length > 0 ? (
+          <Suspense fallback={null}>
+            <ProductBrowser
+              products={products}
+              categoryOptions={categoryOptions}
+              finishOptions={finishOptions}
+              labels={{
+                searchLabel: labels.t("search_label"),
+                searchPlaceholder: labels.t("search_placeholder"),
+                searchClear: labels.t("search_clear"),
+                resultsFor: labels.t("search_results_for"),
+                noResults: labels.t("search_no_results"),
+                sortLabel: labels.t("sort_label"),
+                sortFeatured: labels.t("sort_featured"),
+                sortPriceAsc: labels.t("sort_price_asc"),
+                sortPriceDesc: labels.t("sort_price_desc"),
+                sortNameAsc: labels.t("sort_name_asc"),
+                countOne: labels.t("result_count_one"),
+                countMany: labels.t("result_count_many"),
+                all: labels.t("filter_all"),
+                category: labels.t("filter_category"),
+                finish: labels.t("filter_finish"),
+                clearFilters: labels.t("filter_clear"),
+                empty: labels.t("no_results"),
+              }}
+            />
+          </Suspense>
         ) : (
           <p className="text-sm text-ink-muted">{labels.t("no_products")}</p>
         )}

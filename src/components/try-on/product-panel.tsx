@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Swatch } from "@/components/ui/swatch";
 import { SaveHeart } from "@/components/ui/save-heart";
 import { useShop } from "@/components/ui/shop-provider";
+import { canSell } from "@/lib/cart/sellable";
 import { useCart } from "@/components/cart/cart-provider";
 import { formatMoney } from "@/lib/cart/types";
 import type { LookWithItems, ProductWithShades, ShadeRow } from "@/lib/content";
@@ -85,7 +86,7 @@ export function ProductPanel({
           <ul className="space-y-5">
             {looks.map((look) => (
               <li key={look.id} className="border-b border-line-soft pb-5">
-                <div className="flex items-baseline justify-between gap-4">
+                <div className="flex items-center justify-between gap-4">
                   <h3 className="font-[family-name:var(--font-display)] text-xl">{look.name}</h3>
                   <button
                     type="button"
@@ -122,7 +123,7 @@ export function ProductPanel({
                     </h3>
                     <Link
                       href={`/products/${product.slug}`}
-                      className="shrink-0 text-[0.625rem] tracking-[0.14em] text-ink-muted uppercase transition-colors duration-300 hover:text-accent-text"
+                      className="tap-sm shrink-0 text-[0.625rem] tracking-[0.14em] text-ink-muted uppercase transition-colors duration-300 hover:text-accent-text"
                     >
                       {labels.viewProduct}
                     </Link>
@@ -200,8 +201,8 @@ export function WearingNow({
     return <p className="text-xs text-ink-muted">{labels.none}</p>;
   }
 
-  const buyable = applied.filter(
-    (a) => checkoutEnabled && a.product.is_purchasable && (a.product.price_amount ?? 0) > 0,
+  const buyable = applied.filter((a) =>
+    canSell({ checkoutEnabled, product: a.product, shade: a.shade }),
   );
 
   return (
@@ -222,7 +223,7 @@ export function WearingNow({
       <ul className="space-y-4">
         {applied.map((item) => {
           const price = item.product.price_amount ?? 0;
-          const canBuy = checkoutEnabled && item.product.is_purchasable && price > 0;
+          const canBuy = canSell({ checkoutEnabled, product: item.product, shade: item.shade });
           return (
             <li key={item.shade.id} className="border-b border-line-soft pb-4 last:border-0">
               <div className="flex items-center gap-2.5">

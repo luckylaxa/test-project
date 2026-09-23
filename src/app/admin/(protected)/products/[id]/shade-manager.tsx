@@ -15,6 +15,7 @@ export type ShadeDraft = {
   finish: Finish;
   default_intensity: number;
   is_visible: boolean;
+  is_in_stock: boolean;
 };
 
 const FINISH_HELP: Record<Finish, string> = {
@@ -56,6 +57,7 @@ export function ShadeManager({
         finish: "satin",
         default_intensity: 0.7,
         is_visible: true,
+        is_in_stock: true,
       },
     ]);
     setOpenKey(key);
@@ -89,6 +91,7 @@ export function ShadeManager({
                   <span className="block text-[0.625rem] tracking-[0.12em] text-ink-muted uppercase">
                     {shade.finish}
                     {shade.is_visible ? "" : " · hidden"}
+                    {shade.is_in_stock ? "" : " · sold out"}
                   </span>
                 </button>
                 <button
@@ -135,6 +138,12 @@ export function ShadeManager({
                       label="Show on the website"
                       checked={shade.is_visible}
                       onChange={(x) => update(shade.key, { is_visible: x })}
+                    />
+                    <Toggle
+                      label="In stock"
+                      help="Turn off when this shade has sold out. It stays on the site, marked sold out, and cannot be bought."
+                      checked={shade.is_in_stock}
+                      onChange={(x) => update(shade.key, { is_in_stock: x })}
                     />
                   </div>
 

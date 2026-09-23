@@ -4,7 +4,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { createPublicClient } from "@/lib/supabase/public";
 import { createClient } from "@/lib/supabase/server";
 import { gallery } from "@/lib/section-content";
-import type { CartLine } from "./types";
+import { MAX_LINES, MAX_QUANTITY, type CartLine } from "./types";
 
 /** What the browser needs to open Razorpay's payment modal. */
 export type RazorpayOrder = {
@@ -22,12 +22,27 @@ export type CheckoutResult =
   // Demonstration mode skips payment entirely and goes straight to the
   // confirmation, which says plainly that nothing was charged.
   | { ok: true; demoUrl: string }
-  // `needs` lets the basket send the customer somewhere useful rather than
-  // just showing them a wall of text.
-  | { ok: false; error: string; needs?: "sign-in" | "address" };
+  /*
+   * `errorKey` is a `ui_labels` key, not a sentence: these are read by a
+   * customer at the moment a purchase fails, so the brand team has to be able
+   * to reword them. `needs` lets the basket send someone somewhere useful
+   * rather than just showing them a wall of text.
+   */
+  | { ok: false; errorKey: CheckoutErrorKey; needs?: "sign-in" | "address" };
 
-const MAX_LINES = 20;
-const MAX_QUANTITY = 20;
+export type CheckoutErrorKey =
+  | "checkout_error_empty"
+  | "checkout_error_closed"
+  | "checkout_error_unavailable"
+  | "checkout_error_unpriced"
+  | "checkout_error_sold_out"
+  | "checkout_error_shade_gone"
+  | "checkout_error_shade_sold_out"
+  | "checkout_error_shade_required"
+  | "checkout_error_sign_in"
+  | "checkout_error_address"
+  | "checkout_error_not_configured"
+  | "checkout_error_failed";
 
 function credentials() {
   const keyId = process.env.RAZORPAY_KEY_ID;
@@ -65,7 +80,7 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
     .slice(0, MAX_LINES)
     .map((l) => ({ ...l, quantity: Math.min(l.quantity, MAX_QUANTITY) }));
 
-  if (clean.length === 0) return { ok: false, error: "Your basket is empty." };
+  if (clean.length === 0) return { ok: false, errorKey: "checkout_error_empty" };
 
   const supabase = createPublicClient();
 
@@ -77,12 +92,12 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
       .maybeSingle(),
     supabase
       .from("products")
-      .select("id, name, slug, price_amount, is_purchasable, is_visible, gallery, shades(id, name, is_visible)")
+      .select("id, name, slug, price_amount, is_purchasable, is_visible, stock_status, gallery, shades(id, name, is_visible, is_in_stock)")
       .in("id", clean.map((l) => l.productId)),
   ]);
 
   if (!settings?.checkout_enabled) {
-    return { ok: false, error: "Checkout is currently closed. Please use the enquiry form." };
+    return { ok: false, errorKey: "checkout_error_closed" };
   }
 
   const currency = (settings.currency || "INR").toUpperCase();
@@ -97,19 +112,32 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
     // Silently dropping an unavailable item would let someone check out a
     // basket that is not what they saw, so refuse the whole thing instead.
     if (!product || !product.is_visible || !product.is_purchasable) {
-      return { ok: false, error: "One of the items is no longer available. Please review your basket." };
+      return { ok: false, errorKey: "checkout_error_unavailable" };
     }
     if (typeof product.price_amount !== "number" || product.price_amount <= 0) {
-      return { ok: false, error: "One of the items is not priced for purchase yet." };
+      return { ok: false, errorKey: "checkout_error_unpriced" };
     }
+    if (product.stock_status === "out_of_stock") {
+      return { ok: false, errorKey: "checkout_error_sold_out" };
+    }
+
+    const visibleShades = (product.shades ?? []).filter((s) => s.is_visible);
 
     let shadeName: string | null = null;
     if (line.shadeId) {
-      const shade = (product.shades ?? []).find((s) => s.id === line.shadeId && s.is_visible);
+      const shade = visibleShades.find((s) => s.id === line.shadeId);
       if (!shade) {
-        return { ok: false, error: "One of the shades is no longer available. Please review your basket." };
+        return { ok: false, errorKey: "checkout_error_shade_gone" };
+      }
+      if (!shade.is_in_stock) {
+        return { ok: false, errorKey: "checkout_error_shade_sold_out" };
       }
       shadeName = shade.name;
+    } else if (visibleShades.length > 0) {
+      // A shade-bearing product with no shade chosen must never be charged for:
+      // nobody can pack it, and the customer did not pick a colour. A related
+      // product card used to produce exactly this line.
+      return { ok: false, errorKey: "checkout_error_shade_required" };
     }
 
     // The price comes from this row, never from the request body.
@@ -120,7 +148,7 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
     void gallery(product.gallery);
   }
 
-  if (total <= 0) return { ok: false, error: "Your basket is empty." };
+  if (total <= 0) return { ok: false, errorKey: "checkout_error_empty" };
 
   // Who is buying, and where does it go? This is the last gate before payment:
   // the basket and the shop have already been checked, so nobody is asked to
@@ -134,7 +162,7 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
     return {
       ok: false,
       needs: "sign-in",
-      error: "Please sign in or create an account so we can deliver your order.",
+      errorKey: "checkout_error_sign_in",
     };
   }
 
@@ -151,7 +179,7 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
     return {
       ok: false,
       needs: "address",
-      error: "Please add a delivery address before checking out.",
+      errorKey: "checkout_error_address",
     };
   }
 
@@ -167,7 +195,7 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
   if (!creds) {
     return {
       ok: false,
-      error: "Checkout is not configured yet. Please use the enquiry form, or try again later.",
+      errorKey: "checkout_error_not_configured",
     };
   }
 
@@ -194,10 +222,10 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
       cache: "no-store",
     });
 
-    if (!response.ok) return { ok: false, error: "We could not start checkout just now. Please try again." };
+    if (!response.ok) return { ok: false, errorKey: "checkout_error_failed" };
 
     const order = (await response.json()) as { id?: string; amount?: number; currency?: string };
-    if (!order.id) return { ok: false, error: "We could not start checkout just now. Please try again." };
+    if (!order.id) return { ok: false, errorKey: "checkout_error_failed" };
 
     return {
       ok: true,
@@ -216,7 +244,7 @@ export async function createCheckout(lines: CartLine[]): Promise<CheckoutResult>
     };
   } catch {
     // Never surface a provider error verbatim — it can leak configuration.
-    return { ok: false, error: "We could not start checkout just now. Please try again." };
+    return { ok: false, errorKey: "checkout_error_failed" };
   }
 }
 

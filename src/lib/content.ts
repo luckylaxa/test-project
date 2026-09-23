@@ -139,7 +139,13 @@ export async function getBestsellers(limit: number | null): Promise<ProductWithS
 
 export type ProductDetail = ProductWithShades & {
   collection: CollectionRow | null;
-  related: ProductRow[];
+  /**
+   * With their shades. A related card renders the same `ProductCard` as every
+   * other grid, and that card's Add button adds immediately when a product has
+   * no shades — so handing it a shadeless product put a multi-shade lipstick in
+   * the basket with no shade chosen, which checkout then accepted.
+   */
+  related: ProductWithShades[];
 };
 
 export async function getProduct(slug: string): Promise<ProductDetail | null> {
@@ -158,13 +164,13 @@ export async function getProduct(slug: string): Promise<ProductDetail | null> {
 
   const { data: relatedRows } = await supabase
     .from("product_related")
-    .select("sort_order, related:products!product_related_related_product_id_fkey(*)")
+    .select("sort_order, related:products!product_related_related_product_id_fkey(*, shades(*))")
     .eq("product_id", product.id)
     .order("sort_order", { ascending: true });
 
   const related = (relatedRows ?? [])
-    .map((row) => row.related as ProductRow | null)
-    .filter((row): row is ProductRow => row !== null);
+    .map((row) => row.related as unknown as ProductWithShades | null)
+    .filter((row): row is ProductWithShades => row !== null);
 
   return { ...(product as unknown as ProductWithShades & { collection: CollectionRow | null }), related };
 }

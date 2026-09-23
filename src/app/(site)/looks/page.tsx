@@ -78,7 +78,7 @@ export default async function LooksPage() {
                             <li key={item.id}>
                               <Link
                                 href={`/products/${item.product.slug}`}
-                                className="group flex items-center gap-3 text-sm"
+                                className="tap-sm group flex items-center gap-3 text-sm"
                               >
                                 <Swatch shade={item.shade} size={16} />
                                 <span className="text-ink-soft transition-colors duration-300 group-hover:text-accent-text">

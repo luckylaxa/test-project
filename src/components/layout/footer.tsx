@@ -118,7 +118,7 @@ export function Footer({
                 <li key={`${item.label}-${item.href}`}>
                   <Link
                     href={item.href}
-                    className="text-[0.6875rem] tracking-[0.14em] text-ink-muted uppercase transition-colors duration-300 hover:text-accent-text"
+                    className="tap-sm text-[0.6875rem] tracking-[0.14em] text-ink-muted uppercase transition-colors duration-300 hover:text-accent-text"
                   >
                     {item.label}
                   </Link>

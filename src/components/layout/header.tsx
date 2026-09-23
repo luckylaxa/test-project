@@ -28,7 +28,14 @@ export function Header({
   logoAlt: string;
   navLinks: LinkContent[];
   socialLinks: SocialLink[];
-  labels: { navPrimary: string; menuOpen: string; menuClose: string; cart: string; account: string };
+  labels: {
+    navPrimary: string;
+    menuOpen: string;
+    menuClose: string;
+    cart: string;
+    account: string;
+    search: string;
+  };
   showCart?: boolean;
 }) {
   const [scrolled, setScrolled] = useState(false);
@@ -138,6 +145,12 @@ export function Header({
         ) : null}
 
         <div className="flex items-center gap-6">
+          <Link
+            href="/products?focus=search"
+            className="tap text-[0.6875rem] tracking-[0.2em] uppercase transition-colors duration-300 hover:text-accent-text"
+          >
+            {labels.search}
+          </Link>
           {showCart ? (
             <Link
               href="/account"
@@ -208,8 +221,17 @@ export function Header({
         {/* Your account is `hidden sm:inline-flex` in the bar, so on a phone
             orders and saved items had no route at all short of typing the URL.
             The menu is where a phone expects to find them. */}
-        {showCart ? (
-          <ul className="mt-8 flex flex-col gap-1 border-t border-line pt-4">
+        <ul className="mt-8 flex flex-col gap-1 border-t border-line pt-4">
+          <li>
+            <Link
+              href="/products?focus=search"
+              onClick={() => setMenuOpen(false)}
+              className="tap text-[0.6875rem] tracking-[0.2em] uppercase"
+            >
+              {labels.search}
+            </Link>
+          </li>
+          {showCart ? (
             <li>
               <Link
                 href="/account"
@@ -219,8 +241,8 @@ export function Header({
                 {labels.account}
               </Link>
             </li>
-          </ul>
-        ) : null}
+          ) : null}
+        </ul>
 
         {socialLinks.length > 0 ? (
           <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-3">

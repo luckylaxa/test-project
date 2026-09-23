@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { Swatch } from "@/components/ui/swatch";
 import { SaveHeart } from "@/components/ui/save-heart";
 import { useShop } from "@/components/ui/shop-provider";
+import { canSell } from "@/lib/cart/sellable";
 import { useCart } from "@/components/cart/cart-provider";
 import { formatMoney } from "@/lib/cart/types";
 import { gallery } from "@/lib/section-content";
@@ -76,12 +77,11 @@ export function MobileControls({
   const focusShades = (focus?.shades ?? []).filter((s) => s.is_visible);
   const appliedHere = applied.find((a) => a.product.id === focus?.id);
   const price = focus?.price_amount ?? 0;
-  const canBuy = Boolean(checkoutEnabled && focus?.is_purchasable && price > 0);
-  const buyable = applied.filter(
-    (a) =>
-      checkoutEnabled &&
-      a.product.is_purchasable &&
-      (a.product.price_amount ?? 0) > 0,
+  const canBuy = Boolean(
+    focus && canSell({ checkoutEnabled, product: focus, shade: appliedHere?.shade }),
+  );
+  const buyable = applied.filter((a) =>
+    canSell({ checkoutEnabled, product: a.product, shade: a.shade }),
   );
 
   const strip =

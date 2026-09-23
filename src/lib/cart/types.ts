@@ -11,6 +11,12 @@ export type CartLine = {
   quantity: number;
 };
 
+/** Most of one item in one basket. The server enforces the same number. */
+export const MAX_QUANTITY = 20;
+
+/** Most distinct lines in one basket. */
+export const MAX_LINES = 20;
+
 export type CartLineView = CartLine & {
   productName: string;
   productSlug: string;

@@ -465,6 +465,7 @@ export type Database = {
           short_description: string | null
           slug: string
           sort_order: number
+          stock_status: Database["public"]["Enums"]["stock_status"]
           updated_at: string
         }
         Insert: {
@@ -490,6 +491,7 @@ export type Database = {
           short_description?: string | null
           slug: string
           sort_order?: number
+          stock_status?: Database["public"]["Enums"]["stock_status"]
           updated_at?: string
         }
         Update: {
@@ -515,6 +517,7 @@ export type Database = {
           short_description?: string | null
           slug?: string
           sort_order?: number
+          stock_status?: Database["public"]["Enums"]["stock_status"]
           updated_at?: string
         }
         Relationships: [
@@ -575,6 +578,7 @@ export type Database = {
           finish: Database["public"]["Enums"]["shade_finish"]
           hex: string
           id: string
+          is_in_stock: boolean
           is_visible: boolean
           name: string
           product_id: string
@@ -589,6 +593,7 @@ export type Database = {
           finish?: Database["public"]["Enums"]["shade_finish"]
           hex?: string
           id?: string
+          is_in_stock?: boolean
           is_visible?: boolean
           name?: string
           product_id: string
@@ -603,6 +608,7 @@ export type Database = {
           finish?: Database["public"]["Enums"]["shade_finish"]
           hex?: string
           id?: string
+          is_in_stock?: boolean
           is_visible?: boolean
           name?: string
           product_id?: string
@@ -814,6 +820,7 @@ export type Database = {
         | "contact_details"
         | "contact_form"
       shade_finish: "matte" | "satin" | "gloss" | "shimmer" | "natural"
+      stock_status: "in_stock" | "low_stock" | "out_of_stock"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -942,6 +949,7 @@ export const Constants = {
         "contact_form",
       ],
       shade_finish: ["matte", "satin", "gloss", "shimmer", "natural"],
+      stock_status: ["in_stock", "low_stock", "out_of_stock"],
     },
   },
 } as const

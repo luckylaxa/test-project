@@ -42,6 +42,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           add: labels.t("add_to_cart_short"),
           chooseShade: labels.t("quick_add_shade"),
           close: labels.t("cart_close"),
+          stockOut: labels.t("stock_out_short"),
+          stockLow: labels.t("stock_low"),
         },
       }}
     >
@@ -63,6 +65,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           navPrimary: labels.t("nav_primary_label"),
           menuOpen: labels.t("menu_open"),
           menuClose: labels.t("menu_close"),
+          search: labels.t("search_label"),
           cart: labels.t("cart_button"),
           account: labels.t("account_title"),
         }}
@@ -105,6 +108,21 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
             remove: labels.t("cart_remove"),
             close: labels.t("cart_close"),
             unavailable: labels.t("cart_unavailable"),
+            unavailableNote: labels.t("cart_unavailable_note"),
+            checkoutErrors: {
+              checkout_error_empty: labels.t("checkout_error_empty"),
+              checkout_error_closed: labels.t("checkout_error_closed"),
+              checkout_error_unavailable: labels.t("checkout_error_unavailable"),
+              checkout_error_unpriced: labels.t("checkout_error_unpriced"),
+              checkout_error_sold_out: labels.t("checkout_error_sold_out"),
+              checkout_error_shade_gone: labels.t("checkout_error_shade_gone"),
+              checkout_error_shade_sold_out: labels.t("checkout_error_shade_sold_out"),
+              checkout_error_shade_required: labels.t("checkout_error_shade_required"),
+              checkout_error_sign_in: labels.t("checkout_error_sign_in"),
+              checkout_error_address: labels.t("checkout_error_address"),
+              checkout_error_not_configured: labels.t("checkout_error_not_configured"),
+              checkout_error_failed: labels.t("checkout_error_failed"),
+            },
             paymentUnavailable: labels.t("cart_payment_unavailable"),
             paymentUnverified: labels.t("cart_payment_unverified"),
             // Say so before they check out, not only after.

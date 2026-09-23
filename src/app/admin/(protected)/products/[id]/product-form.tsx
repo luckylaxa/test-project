@@ -25,6 +25,7 @@ type Form = {
   price_display: string;
   price_amount: string;
   is_purchasable: boolean;
+  stock_status: "in_stock" | "low_stock" | "out_of_stock";
   shop_url: string;
   shop_label: string;
   is_bestseller: boolean;
@@ -70,6 +71,7 @@ export function ProductForm({
     price_display: product.price_display ?? "",
     price_amount: product.price_amount ? String(product.price_amount / 100) : "",
     is_purchasable: product.is_purchasable,
+    stock_status: product.stock_status,
     shop_url: product.shop_url ?? "",
     shop_label: product.shop_label ?? "",
     is_bestseller: product.is_bestseller,
@@ -85,6 +87,7 @@ export function ProductForm({
       finish: s.finish,
       default_intensity: Number(s.default_intensity),
       is_visible: s.is_visible,
+      is_in_stock: s.is_in_stock,
     })),
     related,
   });
@@ -110,6 +113,7 @@ export function ProductForm({
             ? Math.round(Number(form.price_amount) * 100)
             : null,
           is_purchasable: form.is_purchasable,
+          stock_status: form.stock_status,
           shop_url: form.shop_url || null,
           shop_label: form.shop_label || null,
           is_bestseller: form.is_bestseller,
@@ -131,6 +135,7 @@ export function ProductForm({
           hex: s.hex,
           finish: s.finish,
           default_intensity: s.default_intensity,
+          is_in_stock: s.is_in_stock,
           is_visible: s.is_visible,
         })),
       );
@@ -296,6 +301,17 @@ export function ProductForm({
           help="Turn off to show the product without an Add to basket button."
           checked={v.is_purchasable}
           onChange={(x) => set("is_purchasable", x)}
+        />
+        <Select
+          label="Stock"
+          help="Sold out keeps the product on the site, marked sold out, and refuses checkout. Individual shades have their own switch."
+          value={v.stock_status}
+          onChange={(x) => set("stock_status", x as Form["stock_status"])}
+          options={[
+            { value: "in_stock", label: "In stock" },
+            { value: "low_stock", label: "Low stock" },
+            { value: "out_of_stock", label: "Sold out" },
+          ]}
         />
       </Section>
 

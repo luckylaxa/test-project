@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Accordion } from "@/components/ui/accordion";
 import { ProductCard } from "@/components/ui/cards";
@@ -10,6 +9,7 @@ import { makeLabels } from "@/lib/labels";
 import { SaveSlot } from "@/components/ui/save-slot";
 import { buildMetadata, siteUrl } from "@/lib/metadata";
 import { jsonLdScript } from "@/lib/sanitize";
+import { Breadcrumbs } from "@/components/ui/breadcrumbs";
 import { GalleryAndShades } from "./gallery-and-shades";
 
 export async function generateStaticParams() {
@@ -51,6 +51,13 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
   ]
     .filter((item): item is { title: string; body: string } => Boolean(item.title && item.body));
 
+  const soldOut = product.stock_status === "out_of_stock";
+  const lowStock = product.stock_status === "low_stock";
+  const priced = (product.price_amount ?? 0) > 0;
+  // A product whose shades have all gone is sold out too, whatever its own row
+  // says — otherwise the page offers a colour picker with nothing pickable.
+  const everyShadeGone = shades.length > 0 && shades.every((s) => !s.is_in_stock);
+
   const shopLink =
     product.shop_url && product.shop_label
       ? { label: product.shop_label, href: product.shop_url }
@@ -66,6 +73,20 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
     brand: settings?.brand_name ? { "@type": "Brand", name: settings.brand_name } : undefined,
     category: labels.category(product.category),
     url: `${siteUrl()}/products/${product.slug}`,
+    ...(priced
+      ? {
+          offers: {
+            "@type": "Offer",
+            price: (product.price_amount as number) / 100,
+            priceCurrency: (settings?.currency || "INR").toUpperCase(),
+            availability:
+              soldOut || everyShadeGone || !product.is_purchasable
+                ? "https://schema.org/OutOfStock"
+                : "https://schema.org/InStock",
+            url: `${siteUrl()}/products/${product.slug}`,
+          },
+        }
+      : {}),
     ...(shades.length > 0
       ? {
           hasVariant: shades.map((shade) => ({
@@ -77,6 +98,14 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
       : {}),
   };
 
+  const trail = [
+    { label: labels.t("breadcrumb_home"), href: "/" },
+    ...(product.collection
+      ? [{ label: product.collection.name, href: `/collections/${product.collection.slug}` }]
+      : [{ label: labels.t("shop_all"), href: "/products" }]),
+    { label: product.name, href: `/products/${product.slug}` },
+  ];
+
   return (
     <>
       <script
@@ -86,13 +115,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
 
       <article className="shell pt-32 pb-24 md:pt-44 md:pb-32">
         <header className="mb-12 md:mb-16">
-          {product.collection ? (
-            <Link href={`/collections/${product.collection.slug}`} className="eyebrow hover:text-accent-text">
-              {product.collection.name}
-            </Link>
-          ) : (
-            <p className="eyebrow">{labels.category(product.category)}</p>
-          )}
+          <Breadcrumbs trail={trail} />
           <h1 className="mt-5 text-5xl md:text-7xl">{product.name}</h1>
           {product.short_description ? (
             <p className="measure mt-6 text-lg text-ink-soft">{product.short_description}</p>
@@ -112,10 +135,18 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
           purchasable={Boolean(
             settings?.checkout_enabled && product.is_purchasable && (product.price_amount ?? 0) > 0,
           )}
+          soldOut={soldOut || everyShadeGone}
+          lowStock={lowStock}
           labels={{
             chooseShade: labels.t("choose_shade"),
             tryOnShade: labels.t("try_on_shade"),
             addToCart: labels.t("add_to_cart"),
+            stockLow: labels.t("stock_low"),
+            stockOut: labels.t("stock_out"),
+            quantity: labels.t("quantity_label"),
+            quantityDecrease: labels.t("quantity_decrease"),
+            quantityIncrease: labels.t("quantity_increase"),
+            quantityMax: labels.t("quantity_max"),
           }}
           finishLabels={finishLabels}
         />
@@ -163,7 +194,7 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
               {product.related.map((related, i) => (
                 <ProductCard
                   key={related.id}
-                  product={{ ...related, shades: [] }}
+                  product={related}
                   headingLevel={3}
                   delay={i * 80}
                 />

@@ -9,6 +9,7 @@ import { Reveal } from "./reveal";
 import { SaveHeart } from "./save-heart";
 import { useShop } from "./shop-provider";
 import { QuickAdd } from "@/components/cart/quick-add";
+import { canSell, isSoldOut } from "@/lib/cart/sellable";
 
 /** Product card: image reveals on hover, shades summarised beneath. */
 export function ProductCard({
@@ -30,8 +31,12 @@ export function ProductCard({
   const shades = (product.shades ?? []).filter((s) => s.is_visible);
   const { checkoutEnabled, labels } = useShop();
   const href = `/products/${product.slug}`;
-  const purchasable =
-    checkoutEnabled && product.is_purchasable && (product.price_amount ?? 0) > 0;
+
+  // Stock decides whether a card offers to sell, by the same rule the product
+  // page, the studio and the server all use.
+  const inStockShades = shades.filter((s) => s.is_in_stock);
+  const soldOut = isSoldOut(product, shades);
+  const purchasable = canSell({ checkoutEnabled, product }) && !soldOut;
 
   return (
     <Reveal as="article" delay={delay} className="group flex h-full flex-col">
@@ -67,6 +72,16 @@ export function ProductCard({
           labels={{ add: labels.save, remove: labels.saved }}
           className="absolute top-0.5 right-0.5 z-10"
         />
+
+        {soldOut ? (
+          <span className="absolute top-3 left-3 z-10 bg-canvas/95 px-2.5 py-1 text-[0.5625rem] tracking-[0.16em] text-ink uppercase">
+            {labels.stockOut}
+          </span>
+        ) : product.stock_status === "low_stock" ? (
+          <span className="absolute top-3 left-3 z-10 bg-canvas/95 px-2.5 py-1 text-[0.5625rem] tracking-[0.16em] text-accent-text uppercase">
+            {labels.stockLow}
+          </span>
+        ) : null}
       </div>
 
         <div className="mt-5 flex flex-1 flex-col">
@@ -109,7 +124,7 @@ export function ProductCard({
             <div className="mt-4">
               <QuickAdd
                 productId={product.id}
-                shades={shades}
+                shades={inStockShades}
                 labels={{ add: labels.add, chooseShade: labels.chooseShade, close: labels.close }}
               />
             </div>

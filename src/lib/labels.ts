@@ -77,6 +77,8 @@ export const LABEL_FALLBACKS: Record<string, string> = {
   cart_remove: "Remove",
   cart_close: "Close",
   cart_unavailable: "This item is no longer available",
+  cart_unavailable_note:
+    "Please remove the item marked above, or choose a shade for it, before checking out.",
   // Only claim what the code actually does. Nothing computes tax or delivery,
   // so promising they are "calculated at checkout" was untrue.
   cart_note:
@@ -108,6 +110,60 @@ export const LABEL_FALLBACKS: Record<string, string> = {
     "We could not confirm that payment. If money has left your account, please contact us before trying again.",
   cart_demo_note:
     "This shop is in demonstration mode. You can walk through checkout, but no payment is taken and no order is placed.",
+
+  // Stock. Editors set availability per product and per shade; these are the
+  // words the site uses for it.
+  stock_low: "Low stock",
+  stock_out: "Sold out",
+  stock_out_short: "Sold out",
+
+  /*
+   * Checkout refusals.
+   *
+   * These were literal strings inside `createCheckout`, which broke this
+   * project's first rule: they are read by customers at the moment a purchase
+   * fails, and the brand team could not change a word of them. The action now
+   * returns a key and the basket resolves it here.
+   */
+  checkout_error_empty: "Your basket is empty.",
+  checkout_error_closed: "Checkout is currently closed. Please use the enquiry form.",
+  checkout_error_unavailable: "One of the items is no longer available. Please review your basket.",
+  checkout_error_unpriced: "One of the items is not priced for purchase yet.",
+  checkout_error_sold_out: "One of the items has sold out. Please review your basket.",
+  checkout_error_shade_gone: "One of the shades is no longer available. Please review your basket.",
+  checkout_error_shade_sold_out: "One of the shades has sold out. Please review your basket.",
+  checkout_error_shade_required: "Please choose a shade for one of the items in your basket.",
+  checkout_error_sign_in: "Please sign in or create an account so we can deliver your order.",
+  checkout_error_address: "Please add a delivery address before checking out.",
+  checkout_error_not_configured:
+    "Checkout is not configured yet. Please use the enquiry form, or try again later.",
+  checkout_error_failed: "We could not start checkout just now. Please try again.",
+
+  // Browsing every product, searching and sorting
+  shop_all: "Shop all",
+  search_label: "Search products",
+  search_placeholder: "Search shades, products, collections",
+  search_clear: "Clear",
+  search_results_for: "Results for",
+  search_no_results: "Nothing matched that search.",
+  sort_label: "Sort",
+  sort_featured: "Featured",
+  sort_price_asc: "Price: low to high",
+  sort_price_desc: "Price: high to low",
+  sort_name_asc: "A to Z",
+  result_count_one: "1 product",
+  result_count_many: "{count} products",
+  filter_clear: "Clear filters",
+
+  // Breadcrumbs
+  breadcrumb_home: "Home",
+
+  // Quantity
+  quantity_label: "Quantity",
+  quantity_decrease: "Decrease quantity",
+  quantity_increase: "Increase quantity",
+  quantity_max: "20 is the most you can order of one item.",
+
 
   // Customer accounts
   account_title: "Your account",

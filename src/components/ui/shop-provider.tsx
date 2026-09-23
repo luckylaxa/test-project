@@ -8,6 +8,8 @@ export type ShopLabels = {
   add: string;
   chooseShade: string;
   close: string;
+  stockOut: string;
+  stockLow: string;
 };
 
 type Shop = { checkoutEnabled: boolean; currency: string; labels: ShopLabels };

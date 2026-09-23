@@ -8,7 +8,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react";
-import { CART_STORAGE_KEY, sameLine, type CartLine } from "@/lib/cart/types";
+import { CART_STORAGE_KEY, MAX_QUANTITY, sameLine, type CartLine } from "@/lib/cart/types";
 
 /* ------------------------------------------------------------------ store */
 
@@ -88,7 +88,7 @@ function parse(raw: string): CartLine[] {
       .map((l) => ({
         productId: l.productId,
         shadeId: l.shadeId ?? null,
-        quantity: Math.min(l.quantity, 20),
+        quantity: Math.min(l.quantity, MAX_QUANTITY),
       }));
   } catch {
     return [];
@@ -127,9 +127,9 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     write(
       existing
         ? current.map((l) =>
-            sameLine(l, line) ? { ...l, quantity: Math.min(l.quantity + line.quantity, 20) } : l,
+            sameLine(l, line) ? { ...l, quantity: Math.min(l.quantity + line.quantity, MAX_QUANTITY) } : l,
           )
-        : [...current, { ...line, quantity: Math.min(line.quantity, 20) }],
+        : [...current, { ...line, quantity: Math.min(line.quantity, MAX_QUANTITY) }],
     );
     setOpen(true);
   }, []);
@@ -139,7 +139,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     write(
       quantity <= 0
         ? current.filter((l) => !sameLine(l, line))
-        : current.map((l) => (sameLine(l, line) ? { ...l, quantity: Math.min(quantity, 20) } : l)),
+        : current.map((l) => (sameLine(l, line) ? { ...l, quantity: Math.min(quantity, MAX_QUANTITY) } : l)),
     );
   }, []);
 

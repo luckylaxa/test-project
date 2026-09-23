@@ -1031,3 +1031,127 @@ the Razorpay order call dominates. The restructure was reverted rather than
 kept: it complicated the one function that decides what a customer is charged,
 for nothing a stopwatch could see. Time the whole action before optimising its
 parts.
+
+## A senior-QA pass over the whole site
+
+Two suites now live in `qa/` and are the way to re-check this work:
+
+| Script | What it proves |
+|---|---|
+| `node qa/audit.mjs` | Every public route at 375/414/768/1280/1600: JS errors, failed requests, sideways scroll, one h1 and no skipped levels, missing alt, unnamed controls, tap-target sizes, duplicate ids, unlabelled fields, `href=""`, and any route with no action in `<main>` |
+| `node qa/verify-shop.mjs` | Browse, search, sort, URL state, breadcrumbs, structured data, stock states, quantity, and that a related card cannot add blind |
+| `node qa/verify-gates.mjs <action-id>` | The server's checkout refusals, replayed straight at the server action with tampered baskets |
+
+The audit found **267 tap-target failures and nothing else** — no overflow, no
+heading faults, no missing alt, no unnamed control, no dead end. It is down to
+zero. Two shapes are excluded as correct: the skip link (`sr-only` until
+focused, so 1x1) and the try-on file input (hidden, driven by a visible label).
+
+### The bugs
+
+- **A related-product card could put a shadeless lipstick in the basket.**
+  `getProduct` fetched related products as `ProductRow[]` — no shades — and the
+  page passed `shades: []` to `ProductCard`. `QuickAdd` adds immediately when a
+  product has no shades, so one tap added `{shadeId: null}` for a product with
+  six colours, and checkout accepted it. Nobody could have packed that order.
+  Related products now carry their shades, so the card behaves like every other.
+- **Nothing could ever be marked sold out.** There were no stock columns at all,
+  so the shop could oversell for ever. Migration `velmora_stock_status` adds
+  `products.stock_status` (in_stock / low_stock / out_of_stock) and
+  `shades.is_in_stock` — per shade, because one colour runs out long before a
+  product does. Both are editable in `/admin`.
+- **A product with no shades had no Add to basket button on its own page.** The
+  whole buy column was inside `shades.length > 0`, so such a product could only
+  be bought from a card elsewhere on the site.
+- **Footer legal links were 16px**, not the 32px this file claimed: they never
+  got `.tap-sm`. Collection filter pills were 19px, a look's product rows 20px,
+  the product-page collection link 18px, contact email and phone 23px, the
+  desktop try-on "View product" 17px.
+- **`router.replace` for filters left no history**, so pressing back after
+  narrowing a grid left the site instead of undoing the filter. Discrete choices
+  push; typing still replaces, or every keystroke would bury the previous page.
+- **The basket disabled checkout without saying why.** A line can be known and
+  still unbuyable, and the row looked completely ordinary — only
+  `cart_unavailable` on a *missing* row said anything. Each blocked row is now
+  marked, and `cart_unavailable_note` explains the dead button beside it.
+- **Checkout refusals were hardcoded English.** They are the words a customer
+  reads at the moment a purchase fails, and the brand team could not change one
+  of them — against this file's first rule, while `cart_payment_unavailable`
+  next to them was editable. `createCheckout` returns a `CheckoutErrorKey` and
+  the basket resolves it through `ui_labels`.
+
+### One rule for "can this be bought"
+
+`src/lib/cart/sellable.ts`. The condition was written out by hand in the card,
+the product page, the desktop try-on panel and the phone overlay — four copies
+of the test that decides whether money changes hands. Adding stock to it meant
+finding all four, and missing one would leave a sold-out shade buyable in
+exactly one place. `createCheckout` enforces the same thing server side.
+
+Verified by replaying the server action with tampered baskets — the UI cannot be
+the protection, since anyone can edit `localStorage` and POST the action:
+
+| Tampered basket | Server answer |
+|---|---|
+| shadeless line, product has shades | `checkout_error_shade_required` |
+| sold-out shade | `checkout_error_shade_sold_out` |
+| sold-out product, shade itself in stock | `checkout_error_sold_out` |
+| a shade belonging to a different product | `checkout_error_shade_gone` |
+| empty basket | `checkout_error_empty` |
+| forged `unitAmount: 1` | ignored; reaches the sign-in gate |
+| `quantity: 99999` | clamped; reaches the sign-in gate |
+| a good line | reaches the sign-in gate, not a blanket refusal |
+
+Forcing the click in the page **cannot** work: React will not dispatch to a
+button whose props say `disabled`, whatever the DOM attribute says. That cost a
+detour, and is why these tests talk to the action directly.
+
+Gate order still matters and is unchanged — the product-level sold-out check
+fires before the shade check, which is why a wrong-shade test needs an in-stock
+product. A test expecting otherwise was the wrong one, not the code.
+
+### What a shop needs that this one did not have
+
+- **Nothing listed the catalogue, and nothing searched it.** The only routes to
+  a product were three collections, the bestsellers strip, a look, or a related
+  card — so somebody who knew a shade's name had no way to find it. `/products`
+  lists everything, searches product names, descriptions, categories **and shade
+  names** (`grenat` is a shade, not a product), sorts by price or name, filters
+  by category and finish, counts the results, and puts all of it in the URL so a
+  view can be shared, bookmarked and reached with the back button. A Search link
+  sits in the header and in the phone menu.
+- Collection pages use the same component, so their filters gained URL state,
+  sorting and a result count, and behave identically.
+- **Sold out sorts last** whatever the sort. A sold-out product at the top of a
+  grid is the most annoying thing a shop can do.
+- **Breadcrumbs** on product, collection and shop-all pages, with
+  `BreadcrumbList` structured data.
+- **`offers` in the product JSON-LD** — price, currency and availability. It was
+  missing entirely, so no product could earn a rich result.
+- **A quantity stepper** on the product page. Only one could be added at a time,
+  and the basket's cap of 20 was silent — pressing `+` at the limit did nothing,
+  which reads as a broken control. `MAX_QUANTITY` is now named once in
+  `cart/types.ts` instead of being the literal 20 in six places.
+
+### Fonts are self-hosted now, and that was not cosmetic
+
+`next build` started failing with nine errors and no output:
+
+    next/font/google queries have exactly one entry
+
+Nothing in the repository caused it. Google now serves both families as
+**variable** fonts — every weight of Cormorant Garamond italic resolved to one
+file — and Turbopack's Google-font loader rejects that. `next/font/local` with
+the latin-subset variable files (`src/app/fonts/`, ~100KB for both families
+against six static files) fixes it and removes a build-time dependency on
+somebody else's server, the same rule the MediaPipe model already follows.
+`weight` is a range, so 300/400/500 come from one file and no weight is
+synthetically bolded.
+
+### Re-running the stock checks
+
+Nothing is sold out on clean data, so `verify-shop.mjs` skips those checks and
+prints the fixture SQL in its header. Apply it, then **`rm -rf .next && npm run
+build`** — `npm run build` alone keeps the `use cache` store in `.next/cache`,
+so the old stock is still served. That bit this pass: a suite reported sold-out
+badges after the fixture had already been reverted in the database.

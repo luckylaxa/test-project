@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCart } from "./cart-provider";
-import { createCheckout, verifyPayment } from "@/lib/cart/checkout";
+import { createCheckout, verifyPayment, type CheckoutErrorKey } from "@/lib/cart/checkout";
 import { loadRazorpay, payWithRazorpay } from "@/lib/cart/razorpay";
 import { formatMoney, type CartLineView } from "@/lib/cart/types";
 
@@ -26,8 +26,11 @@ export type CartLabels = {
   close: string;
   note: string | null;
   unavailable: string;
+  unavailableNote: string;
   paymentUnavailable: string;
   paymentUnverified: string;
+  /** Every refusal `createCheckout` can return, already resolved to wording. */
+  checkoutErrors: Record<CheckoutErrorKey, string>;
 };
 
 /**
@@ -111,7 +114,7 @@ export function CartDrawer({
           );
           return;
         }
-        setError(result.error);
+        setError(labels.checkoutErrors[result.errorKey]);
         return;
       }
 
@@ -157,7 +160,7 @@ export function CartDrawer({
       running.current = false;
       setBusy(false);
     }
-  }, [lines, router, setOpen, labels.paymentUnavailable, labels.paymentUnverified]);
+  }, [lines, router, setOpen, labels.checkoutErrors, labels.paymentUnavailable, labels.paymentUnverified]);
 
   // Coming back from the sign-in (or the address form) the checkout picks up
   // where it left off: the basket reopens and the payment carries on.
@@ -178,7 +181,11 @@ export function CartDrawer({
     if (url.searchParams.get(RESUME) !== "1") return;
     url.searchParams.delete(RESUME);
     window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    /* Reopening the basket and running the checkout IS the synchronisation this
+       effect exists for: the marker in the URL is the external state, and there
+       is no render-time equivalent of "carry on buying". */
     setOpen(true);
+    /* eslint-disable-next-line react-hooks/set-state-in-effect */
     void checkout();
   }, [checkout, setOpen, pathname]);
 
@@ -277,6 +284,16 @@ export function CartDrawer({
                     </p>
                   )}
 
+                  {/* A line can be known and still unbuyable — sold out, or a
+                      shade never chosen. Without this the row looked ordinary
+                      and only the disabled checkout button hinted at a problem,
+                      with nothing saying which item or why. */}
+                  {view && !view.available ? (
+                    <p className="mt-1 text-[0.625rem] tracking-[0.14em] text-ink-muted uppercase">
+                      {labels.unavailable}
+                    </p>
+                  ) : null}
+
                   {view?.shadeName ? (
                     <p className="mt-0.5 flex items-center gap-1.5 text-[0.625rem] tracking-[0.12em] text-ink-muted uppercase">
                       {view.shadeHex ? (
@@ -345,6 +362,13 @@ export function CartDrawer({
             {error ? (
               <p role="alert" className="mt-3 text-sm text-ink-soft">
                 {error}
+              </p>
+            ) : null}
+
+            {/* Say why the button is dead, next to the button. */}
+            {!error && hasUnavailable ? (
+              <p role="status" className="mt-3 text-sm text-ink-soft">
+                {labels.unavailableNote}
               </p>
             ) : null}
 

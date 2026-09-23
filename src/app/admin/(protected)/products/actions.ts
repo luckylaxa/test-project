@@ -53,6 +53,7 @@ export async function saveShades(
     finish: TablesInsert<"shades">["finish"];
     default_intensity: number;
     is_visible: boolean;
+    is_in_stock: boolean;
   }[],
 ): Promise<ActionResult> {
   await requireAdmin();
@@ -75,6 +76,7 @@ export async function saveShades(
       finish: shade.finish,
       default_intensity: shade.default_intensity,
       is_visible: shade.is_visible,
+      is_in_stock: shade.is_in_stock,
       sort_order: index + 1,
     };
     const { error } = shade.id
