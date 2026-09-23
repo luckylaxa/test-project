@@ -2,12 +2,15 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useCart } from "./cart-provider";
 import { createCheckout, verifyPayment } from "@/lib/cart/checkout";
 import { loadRazorpay, payWithRazorpay } from "@/lib/cart/razorpay";
 import { formatMoney, type CartLineView } from "@/lib/cart/types";
+
+/** Marks a return from the sign-in gate, so the checkout can carry on. */
+const RESUME = "resume-checkout";
 
 export type CartLabels = {
   title: string;
@@ -43,6 +46,7 @@ export function CartDrawer({
   labels: CartLabels;
 }) {
   const router = useRouter();
+  const pathname = usePathname();
   const { lines, open, setOpen, setQuantity, remove } = useCart();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,7 +78,7 @@ export function CartDrawer({
   );
   const hasUnavailable = resolved.some((r) => !r.view?.available);
 
-  async function checkout() {
+  const checkout = useCallback(async () => {
     setBusy(true);
     setError(null);
     const result = await createCheckout(lines);
@@ -84,9 +88,14 @@ export function CartDrawer({
       // shrug at — it is a next step, so take them straight to it.
       if (result.needs) {
         setOpen(false);
-        // Send them back to the page they were buying from, rather than
-        // stranding them on the account page.
-        const back = encodeURIComponent(window.location.pathname);
+        // Come back and *finish buying*, not just land on the page they
+        // happened to be reading. The basket is a drawer over whatever page
+        // you are on, so sending back the bare pathname returned people to the
+        // home page with the basket shut and the checkout abandoned — which is
+        // exactly what it looked like: sign in, and nothing happens.
+        const url = new URL(window.location.href);
+        url.searchParams.set(RESUME, "1");
+        const back = encodeURIComponent(url.pathname + url.search);
         router.push(
           `/account?reason=${result.needs === "sign-in" ? "checkout" : "address"}&next=${back}`,
         );
@@ -134,7 +143,28 @@ export function CartDrawer({
       setError(labels.paymentUnavailable);
       setBusy(false);
     }
-  }
+  }, [lines, router, setOpen, labels.paymentUnavailable, labels.paymentUnverified]);
+
+  // Coming back from the sign-in (or the address form) the checkout picks up
+  // where it left off: the basket reopens and the payment carries on.
+  //
+  // Keyed on `pathname`, because this drawer lives in the layout and so never
+  // remounts across a client-side navigation — a mount-only effect ran on
+  // /account, where there is no marker, and never again. Read from `location`
+  // rather than `useSearchParams` so the prerendered pages this sits on do not
+  // have to become dynamic. The marker is stripped before the checkout runs, so
+  // a refresh or the back button cannot fire it twice.
+  const resumed = useRef(false);
+  useEffect(() => {
+    if (resumed.current) return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get(RESUME) !== "1") return;
+    resumed.current = true;
+    url.searchParams.delete(RESUME);
+    window.history.replaceState(null, "", url.pathname + url.search + url.hash);
+    setOpen(true);
+    void checkout();
+  }, [checkout, setOpen, pathname]);
 
   if (!open) return null;
 

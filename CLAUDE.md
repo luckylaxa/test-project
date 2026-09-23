@@ -878,3 +878,50 @@ Details, saved items and orders were one column. With a hundred saved items you
 had to scroll past every one to reach your orders — the thing people open an
 account page for. `AccountTabs` splits them, `?tab=` deep-links a section, and
 every panel stays mounted so switching refetches nothing.
+
+## Sign in, and the checkout carries on
+
+Reported: checkout asked for a sign-in, and after signing in nothing happened —
+the home page, basket shut, no payment.
+
+The basket is a drawer over whatever page you are reading, so the gate sent
+back the bare pathname:
+
+    const back = encodeURIComponent(window.location.pathname);   // "/" 
+
+That returns you to *the page you were browsing*, not to *the checkout you were
+in the middle of*. Signing in from the home page therefore returned you to the
+home page, with the drawer closed and the purchase abandoned.
+
+The gate now carries `?resume-checkout=1` through the round trip, and
+`CartDrawer` reopens the basket and runs the checkout again on arrival. It
+strips the marker before running, so a refresh or the back button cannot fire it
+twice.
+
+**The effect has to be keyed on `pathname`.** The drawer lives in the layout and
+never remounts across a client-side navigation, so a mount-only effect ran once
+on `/account` — where there is no marker — and never again. The first version of
+this fix did nothing for exactly that reason.
+
+Verified end to end: item in the basket, checkout, address gate, save, and the
+basket reopens by itself and runs through to the payment step.
+
+### The browser cannot reach Supabase from the sandbox
+
+Worth recording, because it cost this session two wrong conclusions.
+
+Headless Chromium here does not trust the agent proxy's CA, so **every
+browser-side call to `*.supabase.co` fails with `ERR_CERT_AUTHORITY_INVALID`**.
+Server actions are unaffected — they run in Node, which does trust it — so
+`createCheckout`, the wishlist and every server-rendered page test correctly.
+Only `supabase.auth.*`, which the browser calls directly, fails.
+
+This file previously said sign-up was broken by *Confirm email*. That was wrong:
+a raw `POST /auth/v1/signup` succeeds and returns `confirmation_sent_at`, and
+`signInWithPassword` returns a session. What was being observed was the sandbox's
+own TLS failure, reported to the page as the generic "we could not do that".
+
+To exercise a signed-in flow here, mint a session against the auth API from the
+shell and inject it as the `sb-<ref>-auth-token` cookie (base64- prefixed JSON,
+chunked at ~3180 bytes). That is how the account tabs and the checkout gates
+were verified.
