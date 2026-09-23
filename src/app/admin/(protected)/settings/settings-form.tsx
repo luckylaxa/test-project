@@ -12,6 +12,7 @@ import { saveSettings } from "./actions";
 type Form = {
   brand_name: string;
   logo: { url: string; alt: string };
+  logo_light: { url: string; alt: string };
   favicon_url: string;
   accent_color: string;
   contact_email: string;
@@ -38,6 +39,7 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
   const editor = useEditor<Form>({
     brand_name: settings.brand_name ?? "",
     logo: { url: settings.logo_url ?? "", alt: settings.logo_alt ?? "" },
+    logo_light: { url: settings.logo_light_url ?? "", alt: "" },
     favicon_url: settings.favicon_url ?? "",
     accent_color: settings.accent_color ?? "#C2A36B",
     contact_email: settings.contact_email ?? "",
@@ -68,6 +70,7 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
         brand_name: form.brand_name,
         logo_url: form.logo.url || null,
         logo_alt: form.logo.alt || null,
+        logo_light_url: form.logo_light.url || null,
         favicon_url: form.favicon_url || null,
         accent_color: form.accent_color,
         contact_email: form.contact_email || null,
@@ -111,6 +114,22 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
           value={v.logo}
           onChange={(x) => set("logo", x)}
           accept="image/png,image/svg+xml,image/webp"
+        />
+        <MediaField
+          label="Logo for dark backgrounds"
+          help="A pale version of the same logo. The header sits over the picture at the top of a page, where the dark logo would disappear. Leave empty and the dark one is used everywhere. It needs no description — it is the same logo."
+          value={v.logo_light}
+          onChange={(x) => set("logo_light", x)}
+          accept="image/png,image/svg+xml,image/webp"
+          altRequired={false}
+        />
+        <MediaField
+          label="Browser icon"
+          help="The small icon shown on a browser tab and in bookmarks. A square image works best."
+          value={{ url: v.favicon_url, alt: "" }}
+          onChange={(x) => set("favicon_url", x.url)}
+          accept="image/png,image/svg+xml,image/x-icon"
+          altRequired={false}
         />
         <ColorField
           label="Accent colour"

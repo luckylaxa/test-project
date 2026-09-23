@@ -39,6 +39,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       <Header
         brandName={brandName}
         logoUrl={settings?.logo_url ?? null}
+        logoLightUrl={settings?.logo_light_url ?? null}
         logoAlt={settings?.logo_alt ?? brandName}
         navLinks={links(settings?.nav_links)}
         socialLinks={social}

@@ -643,6 +643,7 @@ export type Database = {
           id: number
           legal_links: Json
           logo_alt: string | null
+          logo_light_url: string | null
           logo_url: string | null
           nav_links: Json
           seo_description: string | null
@@ -673,6 +674,7 @@ export type Database = {
           id?: number
           legal_links?: Json
           logo_alt?: string | null
+          logo_light_url?: string | null
           logo_url?: string | null
           nav_links?: Json
           seo_description?: string | null
@@ -703,6 +705,7 @@ export type Database = {
           id?: number
           legal_links?: Json
           logo_alt?: string | null
+          logo_light_url?: string | null
           logo_url?: string | null
           nav_links?: Json
           seo_description?: string | null

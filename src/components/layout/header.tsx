@@ -14,6 +14,7 @@ import { CartButton } from "@/components/cart/cart-drawer";
 export function Header({
   brandName,
   logoUrl,
+  logoLightUrl,
   logoAlt,
   navLinks,
   socialLinks,
@@ -22,6 +23,8 @@ export function Header({
 }: {
   brandName: string;
   logoUrl: string | null;
+  /** Light colourway, for the transparent header over a hero. */
+  logoLightUrl: string | null;
   logoAlt: string;
   navLinks: LinkContent[];
   socialLinks: SocialLink[];
@@ -53,8 +56,36 @@ export function Header({
     };
   }, [menuOpen]);
 
+  // Two colourways, stacked and swapped in CSS rather than in JS: the header is
+  // transparent over a hero and its type is flipped to light there, so a dark
+  // mark would vanish into the photograph. Doing it in CSS means no flash on
+  // first paint and no second render on scroll. The light one is absolutely
+  // positioned so it cannot add to the layout, and both are the same artwork at
+  // the same size, so the swap does not shift anything.
   const mark = logoUrl ? (
-    <Image src={logoUrl} alt={logoAlt || brandName} width={148} height={32} className="h-6 w-auto md:h-7" priority />
+    <span className="relative inline-block">
+      <Image
+        src={logoUrl}
+        alt={logoAlt || brandName}
+        width={157}
+        height={50}
+        className="h-8 w-auto md:h-9"
+        data-logo="dark"
+        priority
+      />
+      {logoLightUrl ? (
+        <Image
+          src={logoLightUrl}
+          alt=""
+          aria-hidden
+          width={157}
+          height={50}
+          className="absolute inset-0 h-8 w-auto md:h-9"
+          data-logo="light"
+          priority
+        />
+      ) : null}
+    </span>
   ) : (
     <span className="font-[family-name:var(--font-display)] text-xl tracking-[0.18em] uppercase md:text-2xl">
       {brandName}

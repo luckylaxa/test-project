@@ -58,7 +58,11 @@ export function ProductCard({
             <p className="mt-2 line-clamp-2 text-sm text-ink-soft">{product.short_description}</p>
           ) : null}
 
-          <div className="mt-4 flex items-center justify-between gap-4">
+          {/* Wraps rather than overflows. In a two-column grid at 375px the card is
+              ~160px wide, and five swatches plus a price do not fit on one line —
+              `justify-between` has nothing to give, so the price hung 4px past the
+              viewport and the whole page scrolled sideways. */}
+          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
             {shades.length > 0 ? (
               <span className="flex items-center gap-1.5">
                 {shades.slice(0, 5).map((shade) => (
@@ -74,7 +78,9 @@ export function ProductCard({
               <span />
             )}
             {product.price_display ? (
-              <span className="text-[0.6875rem] tracking-[0.14em] text-ink-muted">{product.price_display}</span>
+              <span className="text-[0.6875rem] tracking-[0.14em] text-ink-muted">
+                {product.price_display}
+              </span>
             ) : null}
           </div>
         </div>

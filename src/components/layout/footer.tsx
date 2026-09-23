@@ -39,7 +39,7 @@ export function Footer({
           <div className="md:col-span-5">
             <Link href="/" aria-label={brandName} className="inline-block">
               {logoUrl ? (
-                <Image src={logoUrl} alt={logoAlt || brandName} width={160} height={34} className="h-7 w-auto" />
+                <Image src={logoUrl} alt={logoAlt || brandName} width={157} height={50} className="h-9 w-auto" />
               ) : (
                 <span className="font-[family-name:var(--font-display)] text-2xl tracking-[0.18em] uppercase">
                   {brandName}

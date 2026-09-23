@@ -257,6 +257,31 @@
   body:has([data-hero-media]) [data-site-header][data-solid="false"] .eyebrow {
     color: color-mix(in srgb, var(--canvas) 80%, transparent);
   }
+
+  /* The brand mark flips with it. A logo is artwork, not type, so `color` does
+     nothing for it — the two colourways are stacked in the header and this
+     cross-fades between them, on the same curve as the header's own colour
+     change so the whole bar turns together. The global prefers-reduced-motion
+     rule below already collapses this transition. */
+  [data-logo] {
+    transition: opacity 700ms var(--ease-editorial);
+  }
+
+  /* The default state belongs here, not on the element as an `opacity-0` class:
+     Tailwind utilities are a later cascade layer than components, so a utility
+     beats these overrides however specific they are, and both marks end up
+     invisible over a hero. Layer order, not specificity. */
+  [data-logo="light"] {
+    opacity: 0;
+  }
+
+  body:has([data-hero-media]) [data-site-header][data-solid="false"] [data-logo="dark"] {
+    opacity: 0;
+  }
+
+  body:has([data-hero-media]) [data-site-header][data-solid="false"] [data-logo="light"] {
+    opacity: 1;
+  }
 }
 
 @layer utilities {

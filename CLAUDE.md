@@ -397,7 +397,13 @@ checkout fails with a clear message instead of breaking.
 Only a save through `withAdmin()` calls `updateTag`, so a row changed by raw SQL
 keeps serving the old object — including, after a migration, one missing the new
 column entirely (a `?? false` then silently wins). Change settings through
-`/admin`, or rebuild, rather than assuming the page is broken.
+`/admin` rather than assuming the page is broken.
+
+**"or rebuild" was wrong, and this file said it.** The `use cache` store lives in
+`.next/cache`, which `next build` does *not* clear — so a build after a raw-SQL
+settings change happily reuses the stale entry. Setting `logo_url` by SQL and
+rebuilding twice still served `logoUrl: null`; `rm -rf .next && npm run build`
+fixed it on the first try. Outside `/admin` it is **`rm -rf .next`, then build**.
 
 ## Demonstration checkout
 
@@ -699,3 +705,59 @@ what "not readable" meant — the colour fix alone did not solve it.
 high-contrast serif whose thin strokes vanish at 300 once a heading is smaller
 than a hero. Weights 300–500 were already loaded, so none of this added a
 download.
+
+## The logo
+
+`public/brand/` holds the brand mark, set in `site_settings` like any other
+content — `logo_url`, `logo_light_url`, `favicon_url` — so the brand team can
+replace it from `/admin` without a deploy.
+
+| File | Use |
+|---|---|
+| `velmora-logo.png` | Dark mark, the default. Header and footer. |
+| `velmora-logo-light.png` | Pale mark, for the transparent header over a hero. |
+| `velmora-mark.png` | The emblem alone, square on ivory, as the browser icon. |
+
+- **Both colourways are generated from the dark file's alpha channel**, not taken
+  from the two supplied files. The supplied pair trimmed to different
+  proportions (3.14 vs 2.87), and two marks of different sizes swapping on
+  scroll would visibly jump. Recolouring one mask guarantees they register to
+  the pixel. The artwork is clean monochrome-on-transparent, so nothing is lost.
+- **The swap is CSS, not JS** (migration `velmora_logo_light`). The light mark is
+  stacked on the dark one, absolutely positioned so it adds nothing to the
+  layout, and the existing `body:has([data-hero-media]) [data-site-header]
+  [data-solid="false"]` selector cross-fades between them on the same 700ms
+  curve as the header's own colour change. No flash on first paint, no second
+  render on scroll.
+- **Cascade layers, not specificity, decide this.** The light mark's default
+  `opacity: 0` first went on the element as Tailwind's `opacity-0`. Tailwind
+  utilities are a *later layer* than `components`, where these overrides live, so
+  the utility won however specific the override was and **both marks were
+  invisible over a hero** — the swap looked like it worked in the code and showed
+  nothing on the page. The default now sits in the same layer as its overrides.
+- The light mark renders `aria-hidden` with `alt=""`: it is the same brand mark
+  as the dark one, and only one of the two may carry the accessible name. It
+  therefore has no alt column — `logo_light_alt` was added and dropped again
+  (`velmora_logo_light_drop_unused_alt`) rather than shipped unused.
+- `width`/`height` on the `<Image>` are the true 1000x319 ratio. The old text
+  fallback's 148x32 claimed 4.6:1 and reserved the wrong box.
+- **The favicon had no field in `/admin`** — `favicon_url` was in the form's type
+  and in its save payload, but no input ever rendered, so it was unreachable in
+  the same way `ui_labels` was before Phase 8. It has one now, beside the two
+  logo fields.
+
+### Product cards wrap rather than overflow
+
+Found while checking the logo at 375px: the home page scrolled sideways by 4px.
+Not the logo — a `ProductCard`. Its bottom row is `justify-between` with five
+14px swatches on the left and the price on the right, which do not fit in a
+~160px card in a two-column grid, and `justify-between` has nothing to give.
+The row now wraps, so the price drops to its own line on a narrow card and stays
+inline everywhere else.
+
+A first attempt cancelled the price's trailing letter-space with `-mr-[0.14em]`,
+on the theory that `tracking` pads after the last character. It does, but that is
+1.5px of a 4px overflow — the measurement said so, and the fix was wrong.
+
+Verified: ten routes at 375, 768, 1280 and 1600 — no horizontal overflow
+anywhere. The brand link still measures 44px at every width.
