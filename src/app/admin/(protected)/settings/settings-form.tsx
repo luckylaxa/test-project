@@ -3,9 +3,19 @@
 import { ColorField, Select, TextArea, TextInput, Toggle } from "@/components/admin/fields";
 import { MediaField } from "@/components/admin/media-field";
 import { SaveBar, useEditor } from "@/components/admin/save-bar";
-import { RepeaterLinks, RepeaterFooter } from "@/components/admin/repeaters";
+import {
+  RepeaterLinks,
+  RepeaterFooter,
+  incompleteLinkNames,
+} from "@/components/admin/repeaters";
 import type { SiteSettings } from "@/lib/content";
-import { footerColumns, links, obj, socialLinks, text } from "@/lib/section-content";
+import {
+  footerColumnsForEditing,
+  linksForEditing,
+  obj,
+  socialLinks,
+  text,
+} from "@/lib/section-content";
 import { LABEL_FALLBACKS } from "@/lib/labels";
 import { saveSettings } from "./actions";
 
@@ -46,10 +56,10 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
     contact_phone: settings.contact_phone ?? "",
     contact_address: settings.contact_address ?? "",
     social: socialLinks(settings.social_links).map((s) => ({ label: s.label, href: s.url })),
-    nav: links(settings.nav_links),
-    footer: footerColumns(settings.footer_columns),
+    nav: linksForEditing(settings.nav_links),
+    footer: footerColumnsForEditing(settings.footer_columns),
     footer_text: settings.footer_text ?? "",
-    legal: links(settings.legal_links),
+    legal: linksForEditing(settings.legal_links),
     seo_title: settings.seo_title ?? "",
     seo_description: settings.seo_description ?? "",
     seo_og_image_url: settings.seo_og_image_url ?? "",
@@ -65,8 +75,25 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
   const { value: v, set } = editor;
 
   const onSave = () =>
-    editor.save((form) =>
-      saveSettings({
+    editor.save(async (form) => {
+      // Refuse rather than report a success the site will not honour. A link
+      // missing either half is dropped when the page renders, so saving one and
+      // saying "Saved and published" sent editors looking for a menu item that
+      // was never going to appear.
+      const unfinished = [
+        ...incompleteLinkNames(form.nav),
+        ...incompleteLinkNames(form.legal),
+        ...incompleteLinkNames(form.social.map((x) => ({ label: x.label, href: x.href }))),
+        ...form.footer.flatMap((column) => incompleteLinkNames(column.links)),
+      ];
+      if (unfinished.length > 0) {
+        return {
+          ok: false as const,
+          error: `${unfinished.join(", ")} needs both wording and a web address. Links missing either one do not appear on the site.`,
+        };
+      }
+
+      return saveSettings({
         brand_name: form.brand_name,
         logo_url: form.logo.url || null,
         logo_alt: form.logo.alt || null,
@@ -95,8 +122,8 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
         ui_labels: Object.fromEntries(
           Object.entries(form.labels).filter(([, value]) => value.trim() !== ""),
         ),
-      }),
-    );
+      });
+    });
 
   return (
     <div className="max-w-2xl">

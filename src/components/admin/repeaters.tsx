@@ -4,9 +4,28 @@ import { SortableList } from "./sortable";
 
 type LinkItem = { label: string; href: string };
 
+/**
+ * A link needs both halves or the site drops it.
+ *
+ * `link()` in section-content returns null unless the label and the address are
+ * both present — rendering a menu item that goes nowhere would be worse. But
+ * the panel used to accept a half-filled row, say "Saved and published", and
+ * leave the editor watching for a menu item that was never going to appear.
+ */
+export function incompleteLink(item: LinkItem): boolean {
+  const label = item.label.trim();
+  const href = item.href.trim();
+  return (label === "") !== (href === "");
+}
+
+/** Names the rows an editor still has to finish, for the save bar. */
+export function incompleteLinkNames(items: LinkItem[]): string[] {
+  return items.filter(incompleteLink).map((i) => i.label.trim() || i.href.trim() || "a link");
+}
+
 const input =
   "w-full border border-line bg-canvas px-3 py-2 text-sm outline-none " +
-  "transition-colors duration-200 placeholder:text-ink-muted focus:border-accent";
+  "transition-colors duration-200 placeholder:text-ink-muted/60 placeholder:italic focus:border-accent";
 
 const addButton =
   "mt-3 border border-line px-4 py-2 text-[0.6875rem] tracking-[0.16em] uppercase " +
@@ -40,14 +59,19 @@ export function RepeaterLinks({
               placeholder="Wording"
               aria-label="Link wording"
               onChange={(e) => update(index, { label: e.target.value })}
-              className={input}
+              className={`${input} ${
+                incompleteLink(item) && item.label.trim() === "" ? "border-red-700" : ""
+              }`}
             />
             <input
               value={item.href}
               placeholder="/collections"
               aria-label={hrefLabel}
+              aria-describedby={incompleteLink(item) ? `link-warning-${index}` : undefined}
               onChange={(e) => update(index, { href: e.target.value })}
-              className={input}
+              className={`${input} ${
+                incompleteLink(item) && item.href.trim() === "" ? "border-red-700" : ""
+              }`}
             />
             <button
               type="button"
@@ -56,6 +80,16 @@ export function RepeaterLinks({
             >
               Remove
             </button>
+            {incompleteLink(item) ? (
+              <p
+                id={`link-warning-${index}`}
+                className="text-[0.6875rem] text-red-700 sm:col-span-3"
+              >
+                {item.href.trim() === ""
+                  ? "Add a web address, or this link will not appear on the site."
+                  : "Add the wording, or this link will not appear on the site."}
+              </p>
+            ) : null}
           </div>
         )}
       />

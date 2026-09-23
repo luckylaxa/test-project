@@ -13,7 +13,7 @@ import { useId } from "react";
 
 const inputBase =
   "w-full border border-line-strong bg-canvas px-3 py-2.5 text-sm text-ink outline-none " +
-  "transition-colors duration-200 placeholder:text-ink-muted focus:border-accent";
+  "transition-colors duration-200 placeholder:text-ink-muted/60 placeholder:italic focus:border-accent";
 
 export function Field({
   label,

@@ -55,6 +55,26 @@ export function links(value: Json | undefined | null): Link[] {
   return value.map((entry) => link(entry)).filter((l): l is Link => l !== null);
 }
 
+/**
+ * The same list, but keeping half-finished rows — for the admin panel only.
+ *
+ * `links()` drops an entry missing either half, which is right for the site:
+ * a menu item that goes nowhere should not render. It was also what the
+ * settings form seeded itself with, so a row saved with an empty address
+ * disappeared from the panel on reload, and the next save wrote the shortened
+ * list back — quietly destroying the editor's work. The editor has to be able
+ * to see a row in order to finish it.
+ */
+export function linksForEditing(value: Json | undefined | null): Link[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => {
+      const l = obj(entry);
+      return { label: text(l.label) ?? "", href: text(l.href) ?? "" };
+    })
+    .filter((l) => l.label !== "" || l.href !== "");
+}
+
 export type CraftItem = { title: string | null; description: string | null };
 
 /** List items that have at least a title or a description. */
@@ -90,6 +110,17 @@ export function footerColumns(value: Json | undefined | null): FooterColumn[] {
     .map((entry) => {
       const column = obj(entry);
       return { title: text(column.title), links: links(column.links) };
+    })
+    .filter((column) => column.links.length > 0 || column.title !== null);
+}
+
+/** Footer columns for the admin panel, keeping half-finished rows. */
+export function footerColumnsForEditing(value: Json | undefined | null): FooterColumn[] {
+  if (!Array.isArray(value)) return [];
+  return value
+    .map((entry) => {
+      const column = obj(entry);
+      return { title: text(column.title), links: linksForEditing(column.links) };
     })
     .filter((column) => column.links.length > 0 || column.title !== null);
 }

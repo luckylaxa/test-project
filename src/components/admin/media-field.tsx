@@ -128,7 +128,7 @@ export function MediaField({
             value={value.alt}
             placeholder="A model wearing a deep red lip in daylight"
             onChange={(e) => onChange({ ...value, alt: e.target.value })}
-            className={`w-full border bg-canvas px-3 py-2.5 text-sm outline-none transition-colors duration-200 placeholder:text-ink-muted focus:border-accent ${
+            className={`w-full border bg-canvas px-3 py-2.5 text-sm outline-none transition-colors duration-200 placeholder:text-ink-muted/60 placeholder:italic focus:border-accent ${
               missingAlt ? "border-red-600" : "border-line"
             }`}
           />

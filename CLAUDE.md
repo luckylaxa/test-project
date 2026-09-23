@@ -925,3 +925,33 @@ To exercise a signed-in flow here, mint a session against the auth API from the
 shell and inject it as the `sb-<ref>-auth-token` cookie (base64- prefixed JSON,
 chunked at ~3180 bytes). That is how the account tabs and the checkout gates
 were verified.
+
+## A menu link saved in the panel that never appeared
+
+Reported: a "Gifts" link added in `/admin`, "Saved and published", nothing on
+the site. **Not a cache problem** — the live page had been regenerated 100
+minutes after the save and still did not have it. What was stored was:
+
+    {"href": "", "label": "Gifts"}
+
+`link()` returns null unless the label *and* the address are both present, so
+the site dropped it. That is right: a menu item that goes nowhere should not
+render. Three things around it were wrong.
+
+- **The panel accepted it and claimed success.** `saveSettings` now refuses a
+  half-finished link and names it, and `RepeaterLinks` warns on the row as you
+  type. A save that reports success has to mean the site will honour it.
+- **The panel then lost the row.** The settings form seeded itself with the same
+  strict `links()`, so on reload the incomplete entry vanished from the editor —
+  and the next save would have written the shortened list back, destroying the
+  work silently. `linksForEditing()` and `footerColumnsForEditing()` keep
+  half-finished rows so they can be finished. The site keeps the strict parser.
+- **The placeholder looked like a value.** Admin inputs used
+  `placeholder:text-ink-muted`, and `--ink-muted` was darkened to `#736c65`
+  during the contrast work — which made hint text identical to real content. The
+  empty address field read as though it already said `/collections`. Placeholders
+  are now lighter *and* italic, so the difference does not rest on colour alone.
+
+Verified in the real panel with an injected admin session: the row survives a
+reload and warns, Save & Publish refuses with "Gifts needs both wording and a
+web address", and filling the address saves and clears the warning.
