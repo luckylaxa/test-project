@@ -20,6 +20,7 @@ export type CartLabels = {
   emptySaved: string;
   subtotal: string;
   checkout: string;
+  checkoutBusy: string;
   continue: string;
   remove: string;
   close: string;
@@ -78,50 +79,54 @@ export function CartDrawer({
   );
   const hasUnavailable = resolved.some((r) => !r.view?.available);
 
+  // A ref, not the `busy` state: state is not readable by a second call made
+  // in the same tick, and both a click and the resume effect below can start
+  // one. Two runs would create two Razorpay orders for one basket.
+  const running = useRef(false);
+
   const checkout = useCallback(async () => {
+    if (running.current) return;
+    running.current = true;
     setBusy(true);
     setError(null);
-    const result = await createCheckout(lines);
-
-    if (!result.ok) {
-      // Being signed out or having no address is not an error to read and
-      // shrug at — it is a next step, so take them straight to it.
-      if (result.needs) {
-        setOpen(false);
-        // Come back and *finish buying*, not just land on the page they
-        // happened to be reading. The basket is a drawer over whatever page
-        // you are on, so sending back the bare pathname returned people to the
-        // home page with the basket shut and the checkout abandoned — which is
-        // exactly what it looked like: sign in, and nothing happens.
-        const url = new URL(window.location.href);
-        url.searchParams.set(RESUME, "1");
-        const back = encodeURIComponent(url.pathname + url.search);
-        router.push(
-          `/account?reason=${result.needs === "sign-in" ? "checkout" : "address"}&next=${back}`,
-        );
-        return;
-      }
-      setError(result.error);
-      setBusy(false);
-      return;
-    }
-
-    if ("demoUrl" in result) {
-      setOpen(false);
-      router.push(result.demoUrl);
-      return;
-    }
 
     try {
+      const result = await createCheckout(lines);
+
+      if (!result.ok) {
+        // Being signed out or having no address is not an error to read and
+        // shrug at — it is a next step, so take them straight to it.
+        if (result.needs) {
+          setOpen(false);
+          // Come back and *finish buying*, not just land on the page they
+          // happened to be reading. The basket is a drawer over whatever page
+          // you are on, so sending back the bare pathname returned people to the
+          // home page with the basket shut and the checkout abandoned — which is
+          // exactly what it looked like: sign in, and nothing happens.
+          const url = new URL(window.location.href);
+          url.searchParams.set(RESUME, "1");
+          const back = encodeURIComponent(url.pathname + url.search);
+          router.push(
+            `/account?reason=${result.needs === "sign-in" ? "checkout" : "address"}&next=${back}`,
+          );
+          return;
+        }
+        setError(result.error);
+        return;
+      }
+
+      if ("demoUrl" in result) {
+        setOpen(false);
+        router.push(result.demoUrl);
+        return;
+      }
+
       const Razorpay = await loadRazorpay();
       const paid = await payWithRazorpay(result.order, Razorpay);
 
       // Closing the modal is not a failure. Leave the basket exactly as it
       // was so they can pick it up again.
-      if (!paid) {
-        setBusy(false);
-        return;
-      }
+      if (!paid) return;
 
       // The browser saying "paid" proves nothing; the server checks the
       // signature before we show anyone a confirmation.
@@ -133,7 +138,6 @@ export function CartDrawer({
 
       if (!verified.ok) {
         setError(labels.paymentUnverified);
-        setBusy(false);
         return;
       }
 
@@ -141,6 +145,16 @@ export function CartDrawer({
       router.push("/checkout/complete");
     } catch {
       setError(labels.paymentUnavailable);
+    } finally {
+      // Every path clears it, including the ones that navigate away.
+      //
+      // This drawer lives in the layout and never unmounts, so `busy` left
+      // true is a button that is dead for the rest of the visit. That is what
+      // "not active sometimes" was: the sign-in gate returned early without
+      // clearing it, so anyone who opened the basket again — after signing in,
+      // or just by going back — found a faded button reading "…" and no way
+      // to buy anything.
+      running.current = false;
       setBusy(false);
     }
   }, [lines, router, setOpen, labels.paymentUnavailable, labels.paymentUnverified]);
@@ -152,14 +166,16 @@ export function CartDrawer({
   // remounts across a client-side navigation — a mount-only effect ran on
   // /account, where there is no marker, and never again. Read from `location`
   // rather than `useSearchParams` so the prerendered pages this sits on do not
-  // have to become dynamic. The marker is stripped before the checkout runs, so
-  // a refresh or the back button cannot fire it twice.
-  const resumed = useRef(false);
+  // have to become dynamic.
+  //
+  // Stripping the marker before starting is the whole guard against firing
+  // twice. A `useRef` latch used to be, and it was wrong for the same reason
+  // the mount-only effect was: the drawer never unmounts, so a latch set on
+  // the first return stayed set for the rest of the visit, and the second leg
+  // of the gate — sign in, and *then* add an address — never resumed at all.
   useEffect(() => {
-    if (resumed.current) return;
     const url = new URL(window.location.href);
     if (url.searchParams.get(RESUME) !== "1") return;
-    resumed.current = true;
     url.searchParams.delete(RESUME);
     window.history.replaceState(null, "", url.pathname + url.search + url.hash);
     setOpen(true);
@@ -332,13 +348,20 @@ export function CartDrawer({
               </p>
             ) : null}
 
+            {/* Working and unavailable are different states and must not look
+                alike. A faded button reading "…" reads as broken, which is what
+                it was reported as. Busy keeps full contrast and says what is
+                happening; only a genuinely unbuyable basket fades. */}
             <button
               type="button"
               onClick={checkout}
               disabled={busy || hasUnavailable}
-              className="mt-4 w-full bg-ink px-6 py-4 text-[0.6875rem] tracking-[0.2em] text-canvas uppercase transition-colors duration-500 hover:bg-accent hover:text-ink disabled:opacity-40"
+              aria-busy={busy}
+              className={`mt-4 w-full bg-ink px-6 py-4 text-[0.6875rem] tracking-[0.2em] text-canvas uppercase transition-colors duration-500 ${
+                busy ? "cursor-wait" : "hover:bg-accent hover:text-ink disabled:opacity-40"
+              }`}
             >
-              {busy ? "…" : labels.checkout}
+              {busy ? labels.checkoutBusy : labels.checkout}
             </button>
 
             <button

@@ -406,6 +406,7 @@ const LABEL_NAMES: Record<string, string> = {
   cart_empty: "Basket is empty",
   cart_subtotal: "Subtotal",
   cart_checkout: "Go to checkout",
+  cart_checkout_busy: "Checkout, while it works",
   cart_continue: "Continue shopping",
   cart_remove: "Remove",
   cart_close: "Close basket",
@@ -519,7 +520,7 @@ const GROUPED: { title: string; keys: string[] }[] = [
   {
     title: "Basket and checkout",
     keys: [
-      "cart_title", "cart_button", "cart_empty", "cart_subtotal", "cart_checkout",
+      "cart_title", "cart_button", "cart_empty", "cart_subtotal", "cart_checkout", "cart_checkout_busy",
       "cart_continue", "cart_remove", "cart_close", "cart_unavailable", "cart_note",
       "checkout_complete_title", "checkout_complete_body", "checkout_complete_button",
       "checkout_cancelled_title", "checkout_cancelled_body", "checkout_cancelled_button",

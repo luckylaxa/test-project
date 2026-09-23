@@ -955,3 +955,79 @@ render. Three things around it were wrong.
 Verified in the real panel with an injected admin session: the row survives a
 reload and warns, Save & Publish refuses with "Gifts needs both wording and a
 web address", and filling the address saves and clears the warning.
+
+## The checkout button that died mid-visit
+
+Reported from a phone, with a screenshot: the basket showing a subtotal and a
+faded button reading "…", with "not active sometimes and very slow".
+
+That button is `disabled={busy || hasUnavailable}` showing `busy ? "…" : …`,
+so the screenshot said `busy === true`. **`CartDrawer` lives in the site
+layout and never unmounts**, so a `busy` left true is not a glitch that a
+navigation clears — it is a dead button for the rest of the visit. Two
+separate faults could leave it that way, and both are fixed.
+
+### 1. The sign-in gate returned without clearing `busy`
+
+`createCheckout` answering `needs: "sign-in" | "address"` pushed to `/account`
+and returned — skipping `setBusy(false)`. Come back by any route (the back
+button, the basket button, signing in) and the button was disabled for ever.
+Reproduced exactly: click checkout signed out, go back, reopen the basket,
+`{"text":"…","disabled":true}`.
+
+`checkout()` is now one `try`/`finally`, so every path clears `busy` including
+the ones that navigate away. A `running` ref guards re-entry — state is not
+readable by a second call in the same tick, and a click racing the resume
+effect would otherwise create two Razorpay orders for one basket.
+
+### 2. A failed widget load poisoned every later attempt
+
+`loadRazorpay()` reused any `<script src=checkout.razorpay.com>` already in the
+document. That is right while one is loading and **wrong once one has
+finished**: a script that already failed keeps its tag, so the next attempt
+found it, attached `load`/`error` listeners to events that had already fired,
+appended nothing, and waited for ever. The promise never settled, so `busy`
+stayed true with no error shown.
+
+This is the "sometimes": it needs one dropped request first, which is ordinary
+on mobile data. Measured on the old code, aborting the widget request:
+
+| Attempt | Requests made | Stale tags | Button |
+|---|---|---|---|
+| 1 | 1 | 1 | recovers, shows the error |
+| 2 | **1** — none made | 1 | **stuck, disabled, no message** |
+
+The load is now tracked in a module-level promise instead of being inferred
+from the DOM, a failed tag is removed, a failed attempt is forgotten, and a
+15s timeout covers a request that never answers. Same test after: three
+attempts, three requests, no stale tags, button usable every time.
+
+### 3. Working and broken must not look alike
+
+A faded button reading "…" reads as broken. It now keeps full contrast, says
+`cart_checkout_busy` ("Taking you to payment…", editable like every other
+label) and carries `aria-busy`; only a genuinely unbuyable basket fades.
+
+### The resume latch blocked the second leg
+
+`resumed = useRef(false)` was set on the first marked return and never reset —
+on a component that never unmounts. So sign-in resumed the checkout, and the
+address form's return did not: the gate has two legs and only the first
+worked. The marker is stripped by `replaceState` before the checkout starts,
+and that strip is the whole guard; the ref was redundant as well as harmful.
+Verified with an injected session across both legs, forcing the address gate
+twice: both resume, both settle, the button ends enabled.
+
+### What was *not* the problem: the number of round trips
+
+`createCheckout` runs the catalogue reads, then `getUser()`, then `customers`,
+then Razorpay — four sequential phases. Timed individually through the agent
+proxy that looked like ~2.0s, so the reads were restructured into two
+concurrent chains joined before the gates (which kept their documented order).
+
+**Measured end to end, it made no difference: 812ms before, 806ms after** —
+the same within noise, because the Supabase hops are cheap from the server and
+the Razorpay order call dominates. The restructure was reverted rather than
+kept: it complicated the one function that decides what a customer is charged,
+for nothing a stopwatch could see. Time the whole action before optimising its
+parts.

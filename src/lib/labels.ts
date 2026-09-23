@@ -72,6 +72,7 @@ export const LABEL_FALLBACKS: Record<string, string> = {
   cart_empty_saved: "Your saved items",
   cart_subtotal: "Subtotal",
   cart_checkout: "Go to checkout",
+  cart_checkout_busy: "Taking you to payment…",
   cart_continue: "Continue shopping",
   cart_remove: "Remove",
   cart_close: "Close",
