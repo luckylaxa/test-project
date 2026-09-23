@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 import { Swatch } from "@/components/ui/swatch";
+import { SaveHeart } from "@/components/ui/save-heart";
+import { useShop } from "@/components/ui/shop-provider";
+import { useCart } from "@/components/cart/cart-provider";
+import { formatMoney } from "@/lib/cart/types";
 import type { LookWithItems, ProductWithShades, ShadeRow } from "@/lib/content";
 import type { Category } from "@/lib/try-on/makeup-renderer";
 
@@ -66,7 +70,17 @@ export function ProductPanel({
         ) : null}
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto pt-5">
+      {/* The fade marks the scroll boundary. Without it the list simply stops
+          mid-glyph against the shelf below, which reads as a rendering fault
+          rather than as "there is more below" — most visible on a phone, where
+          the sheet leaves this list only a few rows tall. */}
+      <div
+        className="min-h-0 flex-1 overflow-y-auto pt-5"
+        style={{
+          maskImage: "linear-gradient(to bottom, #000 calc(100% - 2rem), transparent)",
+          WebkitMaskImage: "linear-gradient(to bottom, #000 calc(100% - 2rem), transparent)",
+        }}
+      >
         {activeCategory === "looks" ? (
           <ul className="space-y-5">
             {looks.map((look) => (
@@ -146,7 +160,18 @@ export function ProductPanel({
 }
 
 /** Applied products as removable chips, each with its own intensity slider. */
-export function AppliedChips({
+/**
+ * What is on the face right now — and the one place a try-on turns into a sale.
+ *
+ * The studio used to end at "View product", which sent someone who had just
+ * found their shade away to a page where they had to find it again. Each row
+ * now carries its own price, Add to basket and save, and a whole applied look
+ * goes in with one button.
+ *
+ * Each applied shade is one row. It used to be two lists — a chip list and a
+ * separate slider list — naming every shade twice.
+ */
+export function WearingNow({
   applied,
   onRemove,
   onIntensity,
@@ -157,68 +182,124 @@ export function AppliedChips({
   onRemove: (shadeId: string) => void;
   onIntensity: (shadeId: string, value: number) => void;
   onClear: () => void;
-  labels: { none: string; clear: string; intensity: string };
+  labels: {
+    none: string;
+    clear: string;
+    intensity: string;
+    title: string;
+    add: string;
+    addAll: string;
+    save: string;
+    saved: string;
+  };
 }) {
+  const { checkoutEnabled, currency } = useShop();
+  const { add } = useCart();
+
   if (applied.length === 0) {
     return <p className="text-xs text-ink-muted">{labels.none}</p>;
   }
 
+  const buyable = applied.filter(
+    (a) => checkoutEnabled && a.product.is_purchasable && (a.product.price_amount ?? 0) > 0,
+  );
+
   return (
     <div>
-      <ul className="flex flex-wrap gap-2">
-        {applied.map((item) => (
-          <li
-            key={item.shade.id}
-            className="flex items-center gap-2 border border-line py-1.5 pr-1.5 pl-2.5"
-          >
-            <Swatch shade={item.shade} size={14} />
-            <span className="text-[0.625rem] tracking-[0.1em] uppercase">{item.shade.name}</span>
-            <button
-              type="button"
-              onClick={() => onRemove(item.shade.id)}
-              aria-label={`Remove ${item.shade.name}`}
-              className="flex h-5 w-5 items-center justify-center text-ink-muted transition-colors duration-300 hover:text-ink"
-            >
-              <span aria-hidden className="relative block h-2.5 w-2.5">
-                <span className="absolute top-1/2 left-0 h-px w-2.5 -translate-y-1/2 rotate-45 bg-current" />
-                <span className="absolute top-1/2 left-0 h-px w-2.5 -translate-y-1/2 -rotate-45 bg-current" />
-              </span>
-            </button>
-          </li>
-        ))}
-        <li>
-          <button
-            type="button"
-            onClick={onClear}
-            className="border border-transparent px-2.5 py-1.5 text-[0.625rem] tracking-[0.1em] text-ink-muted uppercase transition-colors duration-300 hover:text-ink"
-          >
-            {labels.clear}
-          </button>
-        </li>
+      <div className="mb-3 flex items-baseline justify-between gap-4">
+        <h3 className="text-[0.625rem] tracking-[0.16em] text-ink-muted uppercase">
+          {labels.title}
+        </h3>
+        <button
+          type="button"
+          onClick={onClear}
+          className="shrink-0 text-[0.625rem] tracking-[0.14em] text-ink-muted uppercase transition-colors duration-300 hover:text-ink"
+        >
+          {labels.clear}
+        </button>
+      </div>
+
+      <ul className="space-y-4">
+        {applied.map((item) => {
+          const price = item.product.price_amount ?? 0;
+          const canBuy = checkoutEnabled && item.product.is_purchasable && price > 0;
+          return (
+            <li key={item.shade.id} className="border-b border-line-soft pb-4 last:border-0">
+              <div className="flex items-center gap-2.5">
+                <Swatch shade={item.shade} size={18} />
+                <span className="min-w-0 flex-1 truncate text-[0.6875rem] leading-tight">
+                  <span className="text-ink">{item.product.name}</span>
+                  <span className="text-ink-muted"> · {item.shade.name}</span>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => onRemove(item.shade.id)}
+                  aria-label={`Remove ${item.shade.name}`}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center text-ink-muted transition-colors duration-300 hover:text-ink"
+                >
+                  <span aria-hidden className="relative block h-2.5 w-2.5">
+                    <span className="absolute top-1/2 left-0 h-px w-2.5 -translate-y-1/2 rotate-45 bg-current" />
+                    <span className="absolute top-1/2 left-0 h-px w-2.5 -translate-y-1/2 -rotate-45 bg-current" />
+                  </span>
+                </button>
+              </div>
+
+              <input
+                type="range"
+                min={0}
+                max={100}
+                value={Math.round(item.intensity * 100)}
+                onChange={(e) => onIntensity(item.shade.id, Number(e.target.value) / 100)}
+                className="mt-2.5 h-1 w-full cursor-pointer appearance-none rounded-full bg-line accent-[var(--accent)]"
+                aria-label={`${item.product.name} ${item.shade.name} ${labels.intensity}`}
+              />
+
+              <div className="mt-3 flex items-center gap-2">
+                {price > 0 ? (
+                  <span className="text-[0.6875rem] tracking-[0.12em] text-ink-muted">
+                    {formatMoney(price, currency)}
+                  </span>
+                ) : null}
+                {canBuy ? (
+                  <button
+                    type="button"
+                    onClick={() => add({ productId: item.product.id, shadeId: item.shade.id, quantity: 1 })}
+                    className="tap ml-auto justify-center border border-ink/25 px-3 text-[0.5625rem] tracking-[0.16em] uppercase transition-colors duration-500 ease-[var(--ease-editorial)] hover:border-ink hover:bg-ink hover:text-canvas"
+                  >
+                    {labels.add}
+                  </button>
+                ) : (
+                  <Link
+                    href={`/products/${item.product.slug}`}
+                    className="tap ml-auto justify-center border border-ink/25 px-3 text-[0.5625rem] tracking-[0.16em] uppercase transition-colors duration-500 hover:border-ink"
+                  >
+                    {labels.add}
+                  </Link>
+                )}
+                <SaveHeart
+                  productId={item.product.id}
+                  labels={{ add: labels.save, remove: labels.saved }}
+                  className="shrink-0"
+                />
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
-      <div className="mt-4 space-y-3">
-        {applied.map((item) => (
-          <div key={item.shade.id} className="flex items-center gap-3">
-            <label
-              htmlFor={`intensity-${item.shade.id}`}
-              className="w-28 shrink-0 truncate text-[0.625rem] tracking-[0.1em] text-ink-muted uppercase"
-            >
-              {item.shade.name}
-            </label>
-            <input
-              id={`intensity-${item.shade.id}`}
-              type="range"
-              min={0}
-              max={100}
-              value={Math.round(item.intensity * 100)}
-              onChange={(e) => onIntensity(item.shade.id, Number(e.target.value) / 100)}
-              className="h-1 w-full cursor-pointer appearance-none rounded-full bg-line accent-[var(--accent)]"
-              aria-label={`${item.shade.name} ${labels.intensity}`}
-            />
-          </div>
-        ))}
-      </div>
+      {buyable.length > 1 ? (
+        <button
+          type="button"
+          onClick={() =>
+            buyable.forEach((a) =>
+              add({ productId: a.product.id, shadeId: a.shade.id, quantity: 1 }),
+            )
+          }
+          className="tap mt-4 w-full justify-center bg-ink px-4 text-[0.625rem] tracking-[0.18em] text-canvas uppercase transition-colors duration-500 ease-[var(--ease-editorial)] hover:bg-accent hover:text-ink"
+        >
+          {labels.addAll} ({buyable.length})
+        </button>
+      ) : null}
     </div>
   );
 }

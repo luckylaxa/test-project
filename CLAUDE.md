@@ -761,3 +761,69 @@ on the theory that `tracking` pads after the last character. It does, but that i
 
 Verified: ten routes at 375, 768, 1280 and 1600 — no horizontal overflow
 anywhere. The brand link still measures 44px at every width.
+
+## A try-on that can be bought from
+
+The studio used to end at "View product". Someone who had just found their
+shade was sent to a page where they had to find it again — the one moment the
+whole feature exists to create, spent on navigation.
+
+`WearingNow` (`try-on/product-panel.tsx`) replaces `AppliedChips`. Every applied
+shade is now **one row** carrying its own price, Add to basket and save, and two
+or more buyable shades get an **Add all to basket**, so a whole look goes in with
+one tap. Verified end to end: two shades from two categories both landed in
+`localStorage` with the right product and shade ids, and the drawer opened.
+
+It also merges two lists. `AppliedChips` rendered each applied shade twice —
+once as a chip, once as a slider row — naming every shade in both.
+
+**The mobile sheet was capped at 78svh, which left only the forehead visible.**
+That is the wrong half of the face when the thing being tried on is a lipstick.
+62svh keeps the mouth above the sheet and the panel still scrolls.
+
+The product list inside the sheet has a mask-image fade at its foot. Without it
+the list stops mid-glyph against the shelf below and reads as a rendering fault
+rather than as "there is more below".
+
+## Save and add to basket from any card
+
+`ProductCard` was a link and nothing else. It now carries a `SaveHeart` over the
+image and a `QuickAdd` beneath, wherever cards appear.
+
+- **Saved state is one read for the whole page.** `SavedProvider` fetches the
+  viewer's saved ids once from the browser after hydration. A Suspense read per
+  card would have cost every grid its prerender, for a heart.
+- **`QuickAdd` never guesses a shade.** More than one shade opens a chooser in
+  place; picking the first one for someone is how you get a returned lipstick.
+- **The controls sit outside the card's `<Link>`.** A `<button>` inside an `<a>`
+  is invalid, and the click would follow the card instead of saving.
+- **The chooser floats, it does not grow the card.** Grown, it stretched its
+  whole grid row and opened a ~240px gap between price and button in the card
+  beside it. Card heights measured identical, open and closed.
+- `ShopProvider` carries the five strings and the `checkout_enabled` flag the
+  card controls need. Cards are rendered from three different server components;
+  threading them through each call site means every future caller has to
+  remember them.
+
+## The mobile menu was see-through
+
+Reported from a phone: the menu's links floated over the footer, which showed
+through behind them.
+
+**`backdrop-filter` makes an element a containing block for its `position:
+fixed` descendants.** The header gains `backdrop-blur` the moment the menu
+opens, and the menu was a child of it, so `fixed inset-0` resolved against the
+77px header rather than the viewport — **measured 160px tall on an 812px
+screen**. Its background stopped under the bar while its content ran on down the
+page.
+
+The menu is now a **sibling of `<header>`**, so no filter, transform or
+`will-change` added to the header later can silently trap it again. Measured 812
+of 812 after.
+
+The same screenshot showed a second gap: **Your account is `hidden
+sm:inline-flex`**, so on a 375px phone orders and saved items had no route at
+all short of typing the URL. The menu carries them now.
+
+Verified after all of it: twelve routes at 375, 414, 768, 1280 and 1600 — no
+horizontal overflow, no JS errors — and every new card control measures 44px.

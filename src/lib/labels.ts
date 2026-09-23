@@ -78,6 +78,13 @@ export const LABEL_FALLBACKS: Record<string, string> = {
   cart_note:
     "The price shown is the price you pay — nothing is added at checkout. Payment is handled securely by Razorpay.",
   add_to_cart: "Add to basket",
+  add_to_cart_short: "Add",
+  quick_add_shade: "Choose a shade",
+  try_on_add_shade: "Add to basket",
+  try_on_add_all: "Add all to basket",
+  try_on_shop_title: "Wearing now",
+  try_on_added: "In your basket",
+  nav_saved: "Saved items",
   checkout_complete_title: "Thank you.",
   checkout_complete_body:
     "Your order is confirmed and a receipt is on its way to your email.",

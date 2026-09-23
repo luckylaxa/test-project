@@ -93,6 +93,7 @@ export function Header({
   );
 
   return (
+    <>
     <header
       data-site-header=""
       data-solid={scrolled || menuOpen}
@@ -172,12 +173,21 @@ export function Header({
       </div>
 
       <div className={`h-px bg-line transition-opacity duration-700 ${scrolled ? "opacity-100" : "opacity-0"}`} />
+    </header>
 
-      {/* Mobile menu */}
+      {/* Mobile menu — a sibling of <header>, never a child of it.
+          The header carries `backdrop-blur` once it turns solid, and
+          `backdrop-filter` makes an element a containing block for its
+          `position: fixed` descendants. Nested, this panel's `inset-0`
+          resolved against the 77px header instead of the viewport: measured
+          160px tall on a 812px screen, so its background stopped under the bar
+          and its links floated over the footer. Keeping it outside means no
+          filter, transform or `will-change` added to the header later can
+          silently trap it again. */}
       <div
         id="site-menu"
         hidden={!menuOpen}
-        className="fixed inset-0 top-0 z-40 bg-canvas px-[var(--gutter)] pt-28 pb-12 lg:hidden"
+        className="fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-canvas px-[var(--gutter)] pt-28 pb-12 lg:hidden"
       >
         <nav aria-label={labels.navPrimary}>
           <ul className="flex flex-col gap-1">
@@ -195,6 +205,23 @@ export function Header({
             ))}
           </ul>
         </nav>
+        {/* Your account is `hidden sm:inline-flex` in the bar, so on a phone
+            orders and saved items had no route at all short of typing the URL.
+            The menu is where a phone expects to find them. */}
+        {showCart ? (
+          <ul className="mt-8 flex flex-col gap-1 border-t border-line pt-4">
+            <li>
+              <Link
+                href="/account"
+                onClick={() => setMenuOpen(false)}
+                className="tap text-[0.6875rem] tracking-[0.2em] uppercase"
+              >
+                {labels.account}
+              </Link>
+            </li>
+          </ul>
+        ) : null}
+
         {socialLinks.length > 0 ? (
           <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-3">
             {socialLinks.map((s) => (
@@ -212,6 +239,6 @@ export function Header({
           </ul>
         ) : null}
       </div>
-    </header>
+    </>
   );
 }

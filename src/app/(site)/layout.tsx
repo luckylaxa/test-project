@@ -5,6 +5,8 @@ import { getCopyrightYear, getSiteSettings } from "@/lib/content";
 import { footerColumns, links, socialLinks } from "@/lib/section-content";
 import { makeLabels } from "@/lib/labels";
 import { CartProvider } from "@/components/cart/cart-provider";
+import { SavedProvider } from "@/components/ui/saved-provider";
+import { ShopProvider } from "@/components/ui/shop-provider";
 import { CartDrawer } from "@/components/cart/cart-drawer";
 import { getCartCatalogue } from "@/lib/cart/catalogue";
 
@@ -29,6 +31,20 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
 
   return (
     <CartProvider>
+    <SavedProvider>
+    <ShopProvider
+      value={{
+        checkoutEnabled: showCart,
+        currency: settings?.currency ?? "INR",
+        labels: {
+          save: labels.t("wishlist_add"),
+          saved: labels.t("wishlist_remove"),
+          add: labels.t("add_to_cart_short"),
+          chooseShade: labels.t("quick_add_shade"),
+          close: labels.t("cart_close"),
+        },
+      }}
+    >
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[100] focus:bg-ink focus:px-5 focus:py-3 focus:text-[0.6875rem] focus:tracking-[0.2em] focus:text-canvas focus:uppercase"
@@ -92,6 +108,8 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
           }}
         />
       ) : null}
+    </ShopProvider>
+    </SavedProvider>
     </CartProvider>
   );
 }

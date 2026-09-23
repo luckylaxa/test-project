@@ -67,6 +67,11 @@ export default async function TryOnPage() {
     products: labels.t("try_on_products"),
     close: labels.t("try_on_close"),
     canvasLabel: labels.t("try_on_canvas_label"),
+    shopTitle: labels.t("try_on_shop_title"),
+    addToBasket: labels.t("try_on_add_shade"),
+    addAll: labels.t("try_on_add_all"),
+    save: labels.t("wishlist_add"),
+    saved: labels.t("wishlist_remove"),
   };
 
   return (

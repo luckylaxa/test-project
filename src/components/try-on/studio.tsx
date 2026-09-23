@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CanvasStage, type FaceState, type StageHandle, type StageSource } from "./canvas-stage";
 import { PermissionScreen, SourceSwitcher, type SourceMode } from "./source-panel";
-import { AppliedChips, ProductPanel, type Applied } from "./product-panel";
+import { ProductPanel, WearingNow, type Applied } from "./product-panel";
 import type { LookWithItems, ProductWithShades, ShadeRow, TryOnModelRow } from "@/lib/content";
 import type { Category, MakeupLayer } from "@/lib/try-on/makeup-renderer";
 
@@ -31,6 +31,11 @@ export type StudioLabels = {
   products: string;
   close: string;
   canvasLabel: string;
+  shopTitle: string;
+  addToBasket: string;
+  addAll: string;
+  save: string;
+  saved: string;
 };
 
 /**
@@ -217,14 +222,23 @@ export function Studio({
       {/* Bounded and scrollable: with five products applied the sliders used to
           run past the panel and collide with the disclaimer beneath it. */}
       <div className="mt-5 max-h-[38%] shrink-0 overflow-y-auto border-t border-line pt-4">
-        <AppliedChips
+        <WearingNow
           applied={applied}
           onRemove={(id) => setApplied((c) => c.filter((i) => i.shade.id !== id))}
           onIntensity={(id, value) =>
             setApplied((c) => c.map((i) => (i.shade.id === id ? { ...i, intensity: value } : i)))
           }
           onClear={() => setApplied([])}
-          labels={{ none: labels.none, clear: labels.clear, intensity: labels.intensity }}
+          labels={{
+            none: labels.none,
+            clear: labels.clear,
+            intensity: labels.intensity,
+            title: labels.shopTitle,
+            add: labels.addToBasket,
+            addAll: labels.addAll,
+            save: labels.save,
+            saved: labels.saved,
+          }}
         />
       </div>
     </>
@@ -341,7 +355,11 @@ export function Studio({
               onClick={() => setSheetOpen(false)}
               className="absolute inset-0 bg-ink/35"
             />
-            <div className="relative flex max-h-[78svh] flex-col bg-canvas px-[var(--gutter)] pt-4 pb-6">
+            {/* 78svh left only the forehead showing on a 375px screen, which is
+                the wrong half of the face when the thing being tried on is a
+                lipstick. 62svh keeps the mouth above the sheet; the panel
+                scrolls, so nothing is lost. */}
+            <div className="relative flex max-h-[62svh] flex-col bg-canvas px-[var(--gutter)] pt-4 pb-6">
               <div className="mb-3 flex items-center justify-between">
                 <span aria-hidden className="mx-auto h-1 w-10 rounded-full bg-line" />
                 <button

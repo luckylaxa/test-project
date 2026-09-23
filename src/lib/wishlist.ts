@@ -43,3 +43,24 @@ export async function toggleWishlist(productId: string): Promise<WishlistResult>
     .insert({ user_id: user.id, product_id: productId });
   return error ? { ok: false, needsSignIn: false } : { ok: true, saved: true };
 }
+
+/**
+ * Every product the signed-in customer has saved.
+ *
+ * A grid of cards each needs to know whether it is saved, and doing that with
+ * one server read per card would cost the static page its cache. This is read
+ * once from the browser after hydration instead, so the grids stay prerendered
+ * and the hearts fill in a moment later.
+ *
+ * Signed out is `[]`, not an error: nothing is saved, which is the truth.
+ */
+export async function listSavedIds(): Promise<string[]> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return [];
+
+  const { data } = await supabase.from("wishlist").select("product_id").eq("user_id", user.id);
+  return (data ?? []).map((row) => row.product_id);
+}

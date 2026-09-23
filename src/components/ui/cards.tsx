@@ -1,9 +1,14 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import type { CollectionRow, LookRow, ProductWithShades } from "@/lib/content";
 import { gallery } from "@/lib/section-content";
 import { Swatch } from "./swatch";
 import { Reveal } from "./reveal";
+import { SaveHeart } from "./save-heart";
+import { useShop } from "./shop-provider";
+import { QuickAdd } from "@/components/cart/quick-add";
 
 /** Product card: image reveals on hover, shades summarised beneath. */
 export function ProductCard({
@@ -23,10 +28,15 @@ export function ProductCard({
   const primary = images[0];
   const secondary = images[1];
   const shades = (product.shades ?? []).filter((s) => s.is_visible);
+  const { checkoutEnabled, labels } = useShop();
+  const href = `/products/${product.slug}`;
+  const purchasable =
+    checkoutEnabled && product.is_purchasable && (product.price_amount ?? 0) > 0;
 
   return (
-    <Reveal as="article" delay={delay} className="group">
-      <Link href={`/products/${product.slug}`} className="block">
+    <Reveal as="article" delay={delay} className="group flex h-full flex-col">
+      <div className="relative">
+      <Link href={href} className="block">
         <div className="relative overflow-hidden bg-canvas-soft" style={{ aspectRatio: "4 / 5" }}>
           {primary ? (
             <Image
@@ -49,20 +59,31 @@ export function ProductCard({
             />
           ) : null}
         </div>
+      </Link>
+        {/* Outside the link on purpose: a <button> inside an <a> is invalid, and
+            the click would follow the card instead of saving. */}
+        <SaveHeart
+          productId={product.id}
+          labels={{ add: labels.save, remove: labels.saved }}
+          className="absolute top-0.5 right-0.5 z-10"
+        />
+      </div>
 
-        <div className="mt-5">
+        <div className="mt-5 flex flex-1 flex-col">
+          <Link href={href} className="block">
           <Heading className="font-[family-name:var(--font-display)] text-2xl leading-tight">
             {product.name}
           </Heading>
           {product.short_description ? (
             <p className="mt-2 line-clamp-2 text-sm text-ink-soft">{product.short_description}</p>
           ) : null}
+          </Link>
 
           {/* Wraps rather than overflows. In a two-column grid at 375px the card is
               ~160px wide, and five swatches plus a price do not fit on one line —
               `justify-between` has nothing to give, so the price hung 4px past the
               viewport and the whole page scrolled sideways. */}
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+          <div className="mt-4 flex flex-1 flex-wrap items-start justify-between gap-x-4 gap-y-2">
             {shades.length > 0 ? (
               <span className="flex items-center gap-1.5">
                 {shades.slice(0, 5).map((shade) => (
@@ -83,8 +104,17 @@ export function ProductCard({
               </span>
             ) : null}
           </div>
+
+          {purchasable ? (
+            <div className="mt-4">
+              <QuickAdd
+                productId={product.id}
+                shades={shades}
+                labels={{ add: labels.add, chooseShade: labels.chooseShade, close: labels.close }}
+              />
+            </div>
+          ) : null}
         </div>
-      </Link>
     </Reveal>
   );
 }
